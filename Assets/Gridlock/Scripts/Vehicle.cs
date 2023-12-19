@@ -9,6 +9,8 @@ public class Vehicle : MonoBehaviour
     [SerializeField] private BoxCollider m_Collider;
     [SerializeField] private float m_AccelerateTime = 10f;
     [SerializeField] private float m_LinecastHitAdjustOffset = 0.25f;
+    [SerializeField] private LayerMask m_LayerMask;
+    
 
     bool b_IsStopped = false;
     private float m_CurrentSpeed;
@@ -39,7 +41,7 @@ public class Vehicle : MonoBehaviour
     {
         Vector3 lineCastStart = transform.position + (transform.forward * (m_FollowDistance + m_Collider.size.z / 2f));
         Vector3 lineCastEnd = lineCastStart + transform.forward * m_LinecastHitAdjustOffset * 2f;
-        return !Physics.Linecast(lineCastStart, lineCastEnd);
+        return !Physics.Linecast(lineCastStart, lineCastEnd, m_LayerMask);
     }
 
     private bool Move()
@@ -53,7 +55,7 @@ public class Vehicle : MonoBehaviour
 
         bool moveBlocked = false;
         RaycastHit hit;
-        if (Physics.Linecast(lineCastStart, lineCastEnd, out hit))
+        if (Physics.Linecast(lineCastStart, lineCastEnd, out hit, m_LayerMask))
         {
             float hitDistance = hit.distance / Vector3.Distance(lineCastStart, lineCastEnd);
             desiredPosition = desiredPosition * hitDistance - (transform.rotation * Vector3.forward * m_LinecastHitAdjustOffset);
