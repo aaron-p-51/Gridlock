@@ -6,6 +6,10 @@ public class IntersectionManager : MonoBehaviour
 {
 
     [SerializeField] private BoxCollider m_IntersectionTrigger;
+    [SerializeField] private TrafficLight[] m_TrafficLights;
+    [SerializeField] private WorldTravelDirection m_StartingTrafficDirection;
+
+
     public WorldTravelDirection m_TrafficFlowDirection = WorldTravelDirection.X;
 
 
@@ -14,6 +18,19 @@ public class IntersectionManager : MonoBehaviour
     private bool m_StopLightXActive = false;
 
     HashSet<Vehicle> m_VehiclesInIntersection = new HashSet<Vehicle>();
+
+    private void OnValidate()
+    {
+        if (m_StartingTrafficDirection == WorldTravelDirection.Unset)
+        {
+            Debug.LogWarning($"{gameObject.name} has StartingTrafficDirection set to Unset");
+            return;
+        }
+
+        m_TrafficFlowDirection = m_StartingTrafficDirection;
+        UpdateTrafficLights();
+    }
+
 
     // Start is called before the first frame update
     void Start()
@@ -60,6 +77,7 @@ public class IntersectionManager : MonoBehaviour
 
         if (m_VehiclesInIntersection.Count > 0) return;
         m_TrafficFlowDirection = m_TrafficFlowDirection == WorldTravelDirection.X ? WorldTravelDirection.Z : WorldTravelDirection.X;
+        UpdateTrafficLights();
     }
 
     // Update is called once per frame
@@ -73,11 +91,6 @@ public class IntersectionManager : MonoBehaviour
         m_VehiclesInIntersection.Add(vehicle);
     }
 
-    //private void OnCollisionExit(Collision collision)
-    //{
-    //    m_VehiclesInIntersection.Remove(collision.gameObject.GetComponent<Vehicle>());
-    //}
-
     private void OnTriggerEnter(Collider other)
     {
         m_VehiclesInIntersection.Add(other.GetComponent<Vehicle>());
@@ -86,5 +99,20 @@ public class IntersectionManager : MonoBehaviour
     private void OnTriggerExit(Collider other)
     {
         m_VehiclesInIntersection.Remove(other.GetComponent<Vehicle>());
+    }
+
+    public void UpdateTrafficLights()
+    {
+        foreach (TrafficLight trafficLight in m_TrafficLights)
+        {
+            if (trafficLight.m_TrafficFlowDirection == m_TrafficFlowDirection)
+            {
+                trafficLight.SetGreenLight();
+            }
+            else
+            {
+                trafficLight.SetRedLight();
+            }
+        }
     }
 }
