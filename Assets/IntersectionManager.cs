@@ -28,14 +28,16 @@ public class IntersectionManager : MonoBehaviour
         }
 
         m_TrafficFlowDirection = m_StartingTrafficDirection;
-        UpdateTrafficLights();
+        //UpdateTrafficLights();
     }
+
+
 
 
     // Start is called before the first frame update
     void Start()
     {
-       
+        UpdateTrafficLights();
     }
 
     public int NumVehiclsInIntersection(WorldTravelDirection spawnDirection = WorldTravelDirection.Unset)

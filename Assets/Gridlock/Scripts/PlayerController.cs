@@ -5,15 +5,23 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private Camera m_Camera;
+    [SerializeField] private PlayerUIController m_PlayerUIController;
+
+    int m_PlayerScore = 0;
 
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
-        
+        ScoreVehicle.OnVehicleEnterScoreVolue += HandleOnVehcileEnterScoreVolume;
+    }
+
+    private void OnDestroy()
+    {
+        ScoreVehicle.OnVehicleEnterScoreVolue -= HandleOnVehcileEnterScoreVolume;
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
         if (Input.GetMouseButtonDown(0))
         {
@@ -29,5 +37,11 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
+    }
+
+    private void HandleOnVehcileEnterScoreVolume(Vehicle vehicle)
+    {
+        m_PlayerScore++;
+        m_PlayerUIController.UdpateScore(m_PlayerScore);
     }
 }

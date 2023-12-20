@@ -7,6 +7,8 @@ using UnityEngine;
 public class VehicleSpawner : MonoBehaviour
 {
     [SerializeField] private GameObject[] m_VehiclePrefabs;
+    [SerializeField] private BoxCollider m_SpawnCollider;
+    [SerializeField] private Transform m_SpawnPoint;
     [SerializeField] private Vector2 m_SpawnRange;
     [SerializeField] private float m_SpawnCheckDistance;
     [SerializeField] private LayerMask m_LayerMask;
@@ -14,16 +16,18 @@ public class VehicleSpawner : MonoBehaviour
 
     //public WorldSpawnDirection m_WorldSpawnDirection;
 
+    RaycastHit m_Hit;
+    bool m_HitDetected;
+
+    private void OnValidate()
+    {
+        m_SpawnCollider = GetComponent<BoxCollider>();
+    }
+
     // Start is called before the first frame update
     void Start()
     {
         StartCoroutine(SpawnCoroutine());
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-       
     }
 
     private IEnumerator SpawnCoroutine()
@@ -34,10 +38,16 @@ public class VehicleSpawner : MonoBehaviour
 
             if (Random.Range(0f, 1f) < m_SpawnChance)
             {
-                if (!Physics.Raycast(transform.position, transform.forward, m_SpawnCheckDistance, m_LayerMask))
+                RaycastHit hit;
+                Collider[] hitColliders = Physics.OverlapBox(transform.TransformPoint(m_SpawnCollider.center), m_SpawnCollider.size * 0.5f, Quaternion.identity, m_LayerMask);
+                if (hitColliders.Length == 0)
                 {
                     int prefabIndex = Random.Range(0, m_VehiclePrefabs.Length);
-                    Instantiate(m_VehiclePrefabs[prefabIndex], transform.position, transform.rotation, transform);
+                    Instantiate(m_VehiclePrefabs[prefabIndex], m_SpawnPoint.position, transform.rotation, transform);
+                }
+                else
+                {
+                    Debug.LogError($"Fail To Spawn: hit {hitColliders[0].name}");
                 }
             }
         }
@@ -47,6 +57,16 @@ public class VehicleSpawner : MonoBehaviour
     {
         m_SpawnRange = newSpawnRange;
         m_SpawnChance = newSpawnChance;
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.white;
+        DrawArrow.ForGizmo(m_SpawnPoint.position, transform.forward * 8f, 2f, 20f);
+
+        Gizmos.color = Color.yellow;
+        Gizmos.matrix = transform.localToWorldMatrix;
+        Gizmos.DrawWireCube(m_SpawnCollider.center, m_SpawnCollider.size);
     }
 
 

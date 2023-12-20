@@ -20,6 +20,7 @@ public class Vehicle : MonoBehaviour
     private float m_LerpAccelerateTime = 0f;
     public WorldTravelDirection m_WorldTravelDirection { get; private set; }
 
+    public bool m_Scored = false;
 
     private IntersectionManager m_WaitingAtIntersection;
 
