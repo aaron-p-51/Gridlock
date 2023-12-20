@@ -10,8 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1874151056742805518}
   - component: {fileID: 3742651612186427806}
-  m_Layer: 8
-  m_Name: GameObject (1)
+  - component: {fileID: 7571694079903198556}
+  m_Layer: 9
+  m_Name: StoplightX1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -26,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 62340805414062358}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -8, y: 0.5, z: -3}
+  m_LocalPosition: {x: -12, y: 0.5, z: -3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -49,10 +50,23 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 3, y: 3, z: 5.5}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &7571694079903198556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 62340805414062358}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88e6475d7a05499489c9c2fb0318ce99, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IntersectionManager: {fileID: 1839014623174918358}
 --- !u!1 &1809016267520701589
 GameObject:
   m_ObjectHideFlags: 0
@@ -162,6 +176,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7e46e301c0c4524aa58476f3d792a54, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_IntersectionManager: {fileID: 1839014623174918358}
   m_TrafficFlowColliders_0:
   - {fileID: 7693597742119101016}
   - {fileID: 3742651612186427806}
@@ -178,8 +193,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1904646918484055122}
   - component: {fileID: 5303053214485583751}
-  m_Layer: 8
-  m_Name: GameObject (3)
+  - component: {fileID: 145650043389123296}
+  m_Layer: 9
+  m_Name: StoplightZ1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -194,7 +210,7 @@ Transform:
   m_GameObject: {fileID: 3877977346288058166}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -3, y: 0.5, z: 8}
+  m_LocalPosition: {x: -3, y: 0.5, z: 12}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -221,6 +237,19 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 5.5, y: 3, z: 3}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &145650043389123296
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3877977346288058166}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88e6475d7a05499489c9c2fb0318ce99, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IntersectionManager: {fileID: 1839014623174918358}
 --- !u!1 &4328481244089678026
 GameObject:
   m_ObjectHideFlags: 0
@@ -231,8 +260,9 @@ GameObject:
   m_Component:
   - component: {fileID: 6269883710052511868}
   - component: {fileID: 7693597742119101016}
-  m_Layer: 8
-  m_Name: GameObject
+  - component: {fileID: 1123469597258073687}
+  m_Layer: 9
+  m_Name: StopLightX0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -247,7 +277,7 @@ Transform:
   m_GameObject: {fileID: 4328481244089678026}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 8, y: 0.5, z: 3}
+  m_LocalPosition: {x: 12, y: 0.5, z: 3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -270,10 +300,23 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 3, y: 3, z: 5.5}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1123469597258073687
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4328481244089678026}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88e6475d7a05499489c9c2fb0318ce99, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IntersectionManager: {fileID: 1839014623174918358}
 --- !u!1 &6805845949788168341
 GameObject:
   m_ObjectHideFlags: 0
@@ -283,8 +326,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3345669399188924021}
-  m_Layer: 0
-  m_Name: TrafficColliders_1
+  m_Layer: 9
+  m_Name: StoplightZ
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -316,8 +359,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1453290892572759059}
-  m_Layer: 0
-  m_Name: TrafficColliders_0
+  m_Layer: 9
+  m_Name: StoplightX
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -350,8 +393,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1615876819097898129}
   - component: {fileID: 4668196852086431743}
-  m_Layer: 8
-  m_Name: GameObject (2)
+  - component: {fileID: 1856018634454150156}
+  m_Layer: 9
+  m_Name: StoplightZ0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -366,7 +410,7 @@ Transform:
   m_GameObject: {fileID: 7926008107559940163}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3, y: 0.5, z: -8}
+  m_LocalPosition: {x: 3, y: 0.5, z: -12}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -393,6 +437,19 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 5.5, y: 3, z: 3}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1856018634454150156
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7926008107559940163}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88e6475d7a05499489c9c2fb0318ce99, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IntersectionManager: {fileID: 1839014623174918358}
 --- !u!1 &8257801576864068998
 GameObject:
   m_ObjectHideFlags: 0
@@ -402,12 +459,15 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4242890100946205530}
-  m_Layer: 0
+  - component: {fileID: 1839014623174918358}
+  - component: {fileID: 8138313868966744248}
+  - component: {fileID: 3707853503068835716}
+  m_Layer: 8
   m_Name: Intersection
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 2147483647
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &4242890100946205530
 Transform:
@@ -428,6 +488,70 @@ Transform:
   - {fileID: 1524351432112827521}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1839014623174918358
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8257801576864068998}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35a5063e01118db45b2522050e0514a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  StopLightX: {fileID: 7815985333530201471}
+  StopLightZ: {fileID: 6805845949788168341}
+  m_Trigger: {fileID: 8138313868966744248}
+  InIntersection: 0
+--- !u!65 &8138313868966744248
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8257801576864068998}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 15, y: 5, z: 15}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &3707853503068835716
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8257801576864068998}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1001 &451925425036297783
 PrefabInstance:
   m_ObjectHideFlags: 0

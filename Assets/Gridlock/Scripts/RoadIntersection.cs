@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class RoadIntersection : MonoBehaviour
 {
+    [SerializeField] private IntersectionManager m_IntersectionManager;
     [SerializeField] private BoxCollider[] m_TrafficFlowColliders_0;
     [SerializeField] private BoxCollider[] m_TrafficFlowColliders_1;
 
@@ -19,18 +20,20 @@ public class RoadIntersection : MonoBehaviour
 
     public void SwitchTrafficFlowColliders()
     {
-        m_TrafficFlowActive_0 = !m_TrafficFlowActive_0;
-        Debug.Log($"Traffic Flow Now:{m_TrafficFlowActive_0}");
+        m_IntersectionManager.TrySwitchStoplights();
 
-        foreach(BoxCollider collider in m_TrafficFlowColliders_0)
-        {
-            collider.enabled = m_TrafficFlowActive_0;
-        }
+        //m_TrafficFlowActive_0 = !m_TrafficFlowActive_0;
+        //Debug.Log($"Traffic Flow Now:{m_TrafficFlowActive_0}");
 
-        foreach (BoxCollider collider in m_TrafficFlowColliders_1)
-        {
-            collider.enabled = !m_TrafficFlowActive_0;
-        }
+        //foreach(BoxCollider collider in m_TrafficFlowColliders_0)
+        //{
+        //    collider.enabled = m_TrafficFlowActive_0;
+        //}
+
+        //foreach (BoxCollider collider in m_TrafficFlowColliders_1)
+        //{
+        //    collider.enabled = !m_TrafficFlowActive_0;
+        //}
 
     }
 
