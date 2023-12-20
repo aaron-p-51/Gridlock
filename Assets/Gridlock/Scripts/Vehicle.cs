@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum WorldTravelDirection { X, Z, Unset };
+
 public class Vehicle : MonoBehaviour
 {
     [SerializeField] private float m_Speed = 5f;
@@ -16,14 +18,26 @@ public class Vehicle : MonoBehaviour
     bool b_IsStopped = false;
     private float m_CurrentSpeed;
     private float m_LerpAccelerateTime = 0f;
-    public WorldSpawnDirection m_WorldSpawnDirection;
+    public WorldTravelDirection m_WorldTravelDirection { get; private set; }
 
-    private Stoplight m_WaitingAtStoplight;
+
+    private IntersectionManager m_WaitingAtIntersection;
+
+    private void Start()
+    {
+        m_WorldTravelDirection = ComputeWorldTravelDirection();
+    }
+
+    public WorldTravelDirection ComputeWorldTravelDirection()
+    {
+        float dot = Vector3.Dot(Vector3.forward, transform.forward);
+        return Mathf.Abs(dot) > 0.1f ? WorldTravelDirection.Z : WorldTravelDirection.X;
+    }
 
     // Update is called once per frame
     private void Update()
     {
-        if (b_IsStopped && !IsBlockedByCar() && !IsWaitingAtStoplight())
+        if (b_IsStopped && !IsBlockedByCar() && !WaitAtIntersection())
         {
             b_IsStopped = false;
             return;
@@ -31,10 +45,10 @@ public class Vehicle : MonoBehaviour
 
         if (!b_IsStopped)
         {
-            if (m_WaitingAtStoplight != null)
+            if (m_WaitingAtIntersection != null)
             {
-                m_WaitingAtStoplight.VehicleEnteredIntersection(this);
-                m_WaitingAtStoplight = null;
+                m_WaitingAtIntersection.VehicleEnteredIntersection(this);
+                m_WaitingAtIntersection = null;
             }
 
             bool moveBlocked = Move();
@@ -54,25 +68,60 @@ public class Vehicle : MonoBehaviour
         return Physics.Linecast(lineCastStart, lineCastEnd, m_LayerMaskVehicle);
     }
 
-    private bool IsWaitingAtStoplight()
+    private bool TryFindIntersection()
     {
-        WorldSpawnDirection otherVehicleDirection = m_WorldSpawnDirection == WorldSpawnDirection.X ? WorldSpawnDirection.Z : WorldSpawnDirection.X;
-        if (m_WaitingAtStoplight != null && m_WaitingAtStoplight.VehiclesInIntersection(otherVehicleDirection))
-        {
-            return true;
-        }
-
         Vector3 lineCastStart = transform.position; //transform.position + (transform.forward * m_Collider.size.z / 2f);
         Vector3 lineCastEnd = lineCastStart + transform.forward * m_LinecastHitAdjustOffset * 2f + (transform.forward * m_Collider.size.z / 2f);
 
         RaycastHit hit;
         if (Physics.Linecast(lineCastStart, lineCastEnd, out hit, m_LayerMaskIntersection))
         {
-            m_WaitingAtStoplight = hit.collider.GetComponent<Stoplight>();
+            m_WaitingAtIntersection = hit.collider.GetComponent<IntersectionManager>();
             return true;
         }
 
         return false;
+    }
+
+
+    private bool WaitAtIntersection()
+    {
+        if (m_WaitingAtIntersection == null)
+        {
+           TryFindIntersection();
+        }
+
+        if (m_WaitingAtIntersection != null)
+        {
+            return m_WorldTravelDirection != WorldTravelDirection.Unset &&
+                m_WaitingAtIntersection.m_TrafficFlowDirection != m_WorldTravelDirection;
+        }
+
+        return false;
+
+
+        //WorldSpawnDirection otherVehicleDirection = m_WorldSpawnDirection == WorldSpawnDirection.X ? WorldSpawnDirection.Z : WorldSpawnDirection.X;
+        //if (m_WaitingAtStoplight != null && m_WaitingAtStoplight.VehiclesInIntersection(otherVehicleDirection))
+        //{
+        //    return true;
+        //}
+
+        ////Vector3 lineCastStart = transform.position; //transform.position + (transform.forward * m_Collider.size.z / 2f);
+        ////Vector3 lineCastEnd = lineCastStart + transform.forward * m_LinecastHitAdjustOffset * 2f + (transform.forward * m_Collider.size.z / 2f);
+
+        //RaycastHit hit;
+        //if (Physics.Linecast(lineCastStart, lineCastEnd, out hit, m_LayerMaskIntersection))
+        //{
+        //    m_WaitingAtStoplight = hit.collider.GetComponent<Stoplight>();
+        //    return true;
+        //}
+
+        //return false;
+    }
+
+    public Vector3 GetColliderFrontPosition()
+    {
+        return transform.position;
     }
 
     private bool Move()
@@ -107,16 +156,19 @@ public class Vehicle : MonoBehaviour
 
         if (Physics.Linecast(lineCastStart, lineCastEnd, out hit, m_LayerMaskIntersection))
         {
-            float hitDistance = hit.distance / Vector3.Distance(lineCastStart, lineCastEnd);
-            desiredPosition = desiredPosition * hitDistance - (transform.rotation * Vector3.forward * m_LinecastHitAdjustOffset);
-            moveBlocked = true;
-            transform.position += desiredPosition;
-            return moveBlocked;
+            IntersectionManager intersectionManager = hit.collider.GetComponent<IntersectionManager>();
+            if (intersectionManager != null && intersectionManager.m_TrafficFlowDirection != m_WorldTravelDirection)
+            {
+                float hitDistance = hit.distance / Vector3.Distance(lineCastStart, lineCastEnd);
+                desiredPosition = desiredPosition * hitDistance - (transform.rotation * Vector3.forward * m_LinecastHitAdjustOffset);
+                moveBlocked = true;
+                transform.position += desiredPosition;
+                return moveBlocked;
+            }
         }
 
         transform.position += desiredPosition;
         return moveBlocked;
-
     }
 
 

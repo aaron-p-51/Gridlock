@@ -75,3 +75,9 @@ crashlytics-build.properties
 /[Aa]ssets/SimpleTown/*
 /[Aa]ssets/SimpleTown.meta
 
+# Tarbo City
+/[Aa]ssets/Tarbo-CITY-TrafficLights/*
+
+# Volumetric Mesh
+/[Aa]ssets/Volumetric Mesh/*
+

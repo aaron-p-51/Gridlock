@@ -22,10 +22,10 @@ public class PlayerController : MonoBehaviour
             if (Physics.Raycast(ray, out RaycastHit hitInfo))
             {
                 Debug.Log($"Clicked: {hitInfo.collider.gameObject.name}");
-                RoadIntersection roadIntersection = hitInfo.collider.GetComponent<RoadIntersection>();
-                if (roadIntersection != null)
+                PlayerIntersectionControl playerIntersectionControl = hitInfo.collider.GetComponent<PlayerIntersectionControl>();
+                if (playerIntersectionControl != null)
                 {
-                    roadIntersection.SwitchTrafficFlowColliders();
+                    playerIntersectionControl.SwitchTrafficFlow();
                 }
             }
         }
