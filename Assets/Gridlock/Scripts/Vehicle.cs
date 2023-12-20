@@ -9,7 +9,8 @@ public class Vehicle : MonoBehaviour
     [SerializeField] private BoxCollider m_Collider;
     [SerializeField] private float m_AccelerateTime = 10f;
     [SerializeField] private float m_LinecastHitAdjustOffset = 0.25f;
-    [SerializeField] private LayerMask m_LayerMask;
+    [SerializeField] private LayerMask m_LayerMaskVehicle;
+    [SerializeField] private LayerMask m_LayerMaskIntersection;
     
 
     bool b_IsStopped = false;
@@ -20,7 +21,7 @@ public class Vehicle : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        if (b_IsStopped && CheckIfRoadClear())
+        if (b_IsStopped && !IsBlockedByCar() && !IsBlockedByIntersection())
         {
             b_IsStopped = false;
         }
@@ -37,11 +38,18 @@ public class Vehicle : MonoBehaviour
         }       
     }
 
-    private bool CheckIfRoadClear()
+    private bool IsBlockedByCar()
     {
         Vector3 lineCastStart = transform.position + (transform.forward * (m_FollowDistance + m_Collider.size.z / 2f));
         Vector3 lineCastEnd = lineCastStart + transform.forward * m_LinecastHitAdjustOffset * 2f;
-        return !Physics.Linecast(lineCastStart, lineCastEnd, m_LayerMask);
+        return Physics.Linecast(lineCastStart, lineCastEnd, m_LayerMaskVehicle);
+    }
+
+    private bool IsBlockedByIntersection()
+    {
+        Vector3 lineCastStart = transform.position + (transform.forward * m_Collider.size.z / 2f);
+        Vector3 lineCastEnd = lineCastStart + transform.forward * m_LinecastHitAdjustOffset * 2f;
+        return Physics.Linecast(lineCastStart, lineCastEnd, m_LayerMaskIntersection);
     }
 
     private bool Move()
@@ -50,21 +58,45 @@ public class Vehicle : MonoBehaviour
 
         Vector3 desiredPosition = transform.forward * Time.deltaTime * m_CurrentSpeed;
 
+
+        // Check for other vehicle in font of the vehicle
         Vector3 lineCastStart = transform.position + (transform.forward * (m_FollowDistance + m_Collider.size.z / 2f));
         Vector3 lineCastEnd = lineCastStart + desiredPosition;
 
         bool moveBlocked = false;
         RaycastHit hit;
-        if (Physics.Linecast(lineCastStart, lineCastEnd, out hit, m_LayerMask))
+
+        if (Physics.Linecast(lineCastStart, lineCastEnd, out hit, m_LayerMaskVehicle))
         {
             float hitDistance = hit.distance / Vector3.Distance(lineCastStart, lineCastEnd);
             desiredPosition = desiredPosition * hitDistance - (transform.rotation * Vector3.forward * m_LinecastHitAdjustOffset);
             moveBlocked = true;
+            transform.position += desiredPosition;
+            return moveBlocked;
+        }
+
+
+        // check for intersection
+        lineCastStart = transform.position + (transform.forward * m_Collider.size.z / 2f);
+        lineCastEnd = lineCastStart + desiredPosition;
+
+        if (Physics.Linecast(lineCastStart, lineCastEnd, out hit, m_LayerMaskIntersection))
+        {
+            float hitDistance = hit.distance / Vector3.Distance(lineCastStart, lineCastEnd);
+            desiredPosition = desiredPosition * hitDistance - (transform.rotation * Vector3.forward * m_LinecastHitAdjustOffset);
+            moveBlocked = true;
+            transform.position += desiredPosition;
+            return moveBlocked;
         }
 
         transform.position += desiredPosition;
         return moveBlocked;
+
     }
+
+
+
+
 
     private float GetCurrentSpeed()
     {

@@ -68,10 +68,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Speed: 10
-  m_FollowDistance: 10
+  m_FollowDistance: 5
   m_Collider: {fileID: 8217016917459386847}
-  m_AccelerateTime: 10
-  m_LinecastHitAdjustOffset: 0.25
+  m_AccelerateTime: 3
+  m_LinecastHitAdjustOffset: 0.3
   m_LayerMask:
     serializedVersion: 2
     m_Bits: 384
