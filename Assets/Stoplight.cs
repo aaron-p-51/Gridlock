@@ -12,7 +12,7 @@ public class Stoplight : MonoBehaviour
         m_IntersectionManager.VehicleEnteredIntersection(vehicle);
     }
 
-    public bool VehiclesInIntersection(WorldSpawnDirection spawnDirection)
+    public bool VehiclesInIntersection(WorldTravelDirection spawnDirection)
     {
         return m_IntersectionManager.NumVehiclsInIntersection(spawnDirection) > 0;
     }

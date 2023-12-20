@@ -4,9 +4,10 @@ using UnityEngine;
 
 public class IntersectionManager : MonoBehaviour
 {
-    [SerializeField] private GameObject StopLightX;
-    [SerializeField] private GameObject StopLightZ;
-    [SerializeField] private BoxCollider m_Trigger;
+
+    [SerializeField] private BoxCollider m_IntersectionTrigger;
+    public WorldTravelDirection m_TrafficFlowDirection = WorldTravelDirection.X;
+
 
     public int InIntersection;
 
@@ -17,34 +18,33 @@ public class IntersectionManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        StopLightX.SetActive(m_StopLightXActive);
-        StopLightZ.SetActive(!m_StopLightXActive);
+       
     }
 
-    public int NumVehiclsInIntersection(WorldSpawnDirection spawnDirection = WorldSpawnDirection.Either)
+    public int NumVehiclsInIntersection(WorldTravelDirection spawnDirection = WorldTravelDirection.Unset)
     {
         int numVehicles = 0;
-        if (spawnDirection == WorldSpawnDirection.Either)
+        if (spawnDirection == WorldTravelDirection.Unset)
         {
             numVehicles = m_VehiclesInIntersection.Count;
         }
-        else if (spawnDirection == WorldSpawnDirection.X)
+        else if (spawnDirection == WorldTravelDirection.X)
         {
             numVehicles = 0;
             foreach(Vehicle vehicle in m_VehiclesInIntersection)
             {
-                if (vehicle.m_WorldSpawnDirection == WorldSpawnDirection.X)
+                if (vehicle.m_WorldTravelDirection == WorldTravelDirection.X)
                 {
                     ++numVehicles;
                 }
             }
         }
-        else if (spawnDirection == WorldSpawnDirection.Z)
+        else if (spawnDirection == WorldTravelDirection.Z)
         {
             numVehicles = 0;
             foreach (Vehicle vehicle in m_VehiclesInIntersection)
             {
-                if (vehicle.m_WorldSpawnDirection == WorldSpawnDirection.Z)
+                if (vehicle.m_WorldTravelDirection == WorldTravelDirection.Z)
                 {
                     ++numVehicles;
                 }
@@ -55,15 +55,11 @@ public class IntersectionManager : MonoBehaviour
     }
 
 
-    public void TrySwitchStoplights()
+    public void TrySwitchTrafficFlow()
     {
 
         if (m_VehiclesInIntersection.Count > 0) return;
-
-        m_StopLightXActive = !m_StopLightXActive;
-        StopLightX.SetActive(m_StopLightXActive);
-        StopLightZ.SetActive(!m_StopLightXActive);
-
+        m_TrafficFlowDirection = m_TrafficFlowDirection == WorldTravelDirection.X ? WorldTravelDirection.Z : WorldTravelDirection.X;
     }
 
     // Update is called once per frame
@@ -90,10 +86,5 @@ public class IntersectionManager : MonoBehaviour
     private void OnTriggerExit(Collider other)
     {
         m_VehiclesInIntersection.Remove(other.GetComponent<Vehicle>());
-    }
-
-    public void VehicleLeftIntersection(Vehicle vehicle)
-    {
-        //vehiclesInIntersection.Remove(vehicle);
     }
 }
