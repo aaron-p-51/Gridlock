@@ -193,6 +193,7 @@ MonoBehaviour:
   - {fileID: 4352598266666785681}
   - {fileID: 5246819174393544758}
   m_StartingTrafficDirection: 0
+  m_MinTimeBetweenLightChanges: 1
   m_TrafficFlowDirection: 0
   InIntersection: 0
   m_IsGridlockedInspector: 0

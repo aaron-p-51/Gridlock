@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -16,6 +17,12 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private VehicleSpawner[] m_VehicleSpawners;
     [SerializeField] private List<SpawnerControls> m_SpawnerControls = new List<SpawnerControls>();
     [SerializeField] private IntersectionManager[] m_IntersectionManagers;
+    [SerializeField] private AnimationCurve m_ScoreVsTimeWaitedAtIntersection;
+    [SerializeField] private float m_BaseVehicleScore;
+
+    public float m_Score { get; private set; }
+    public static Action<float> OnScoreChange;
+
 
     private List<Vehicle> m_SpawnedVehicles = new List<Vehicle>();
 
@@ -26,6 +33,14 @@ public class LevelManager : MonoBehaviour
     {
         Vehicle.OnVehicleSpawned += HandleOnVehicleSpawned;
         Vehicle.OnVehicleDestroyed += HandleOnVehicleDestroyed;
+        ScoreVehicle.OnVehicleEnterScoreVolue += HandleOnVehicleEnterScoreVolume;
+    }
+
+    private void OnDestroy()
+    {
+        Vehicle.OnVehicleSpawned -= HandleOnVehicleSpawned;
+        Vehicle.OnVehicleDestroyed -= HandleOnVehicleDestroyed;
+        ScoreVehicle.OnVehicleEnterScoreVolue -= HandleOnVehicleEnterScoreVolume;
     }
 
     private void Start()
@@ -58,6 +73,12 @@ public class LevelManager : MonoBehaviour
     private void HandleOnVehicleDestroyed(Vehicle vehicle)
     {
         m_SpawnedVehicles.Remove(vehicle);
+    }
+
+    private void HandleOnVehicleEnterScoreVolume(Vehicle vehicle)
+    {
+        m_Score += m_ScoreVsTimeWaitedAtIntersection.Evaluate(vehicle.m_TimeWaitingAtIntersection) + m_BaseVehicleScore;
+        OnScoreChange?.Invoke(m_Score);
     }
 
     private IEnumerator CheckForGridlock()

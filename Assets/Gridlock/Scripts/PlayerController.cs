@@ -7,17 +7,16 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Camera m_Camera;
     [SerializeField] private PlayerUIController m_PlayerUIController;
 
-    int m_PlayerScore = 0;
-
     // Start is called before the first frame update
-    private void Start()
+
+    private void Awake()
     {
-        ScoreVehicle.OnVehicleEnterScoreVolue += HandleOnVehcileEnterScoreVolume;
+        LevelManager.OnScoreChange += HandleOnScoreChange;
     }
 
     private void OnDestroy()
     {
-        ScoreVehicle.OnVehicleEnterScoreVolue -= HandleOnVehcileEnterScoreVolume;
+        LevelManager.OnScoreChange -= HandleOnScoreChange;
     }
 
     // Update is called once per frame
@@ -39,9 +38,10 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void HandleOnVehcileEnterScoreVolume(Vehicle vehicle)
+    private void HandleOnScoreChange(float score)
     {
-        m_PlayerScore++;
-        m_PlayerUIController.UdpateScore(m_PlayerScore);
+        m_PlayerUIController.UdpateScoreText(Mathf.RoundToInt(score));
     }
+
+
 }

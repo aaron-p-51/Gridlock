@@ -18,6 +18,9 @@ public class Vehicle : MonoBehaviour
     public static Action<Vehicle> OnVehicleSpawned;
     public static Action<Vehicle> OnVehicleDestroyed;
 
+    public float m_TimeWaitingAtIntersection { get; private set; }
+    public Vector3 m_LocationWhenEnterendLastIntersection { get; private set; }
+
     public bool m_IsStopped { get; private set; }
     private float m_CurrentSpeed;
     private float m_LerpAccelerateTime = 0f;
@@ -31,6 +34,7 @@ public class Vehicle : MonoBehaviour
     {
         OnVehicleSpawned?.Invoke(this);
         m_WorldTravelDirection = ComputeWorldTravelDirection();
+        m_TimeWaitingAtIntersection = 0f;
     }
 
     public WorldTravelDirection ComputeWorldTravelDirection()
@@ -42,6 +46,11 @@ public class Vehicle : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
+        if (m_IsStopped && m_WaitingAtIntersection != null)
+        {
+            m_TimeWaitingAtIntersection += Time.deltaTime;
+        }
+
         if (m_IsStopped && !IsBlockedByCar() && !WaitAtIntersection())
         {
             m_IsStopped = false;
@@ -53,6 +62,7 @@ public class Vehicle : MonoBehaviour
             if (m_WaitingAtIntersection != null)
             {
                 m_WaitingAtIntersection.VehicleEnteredIntersection(this);
+                m_LocationWhenEnterendLastIntersection = transform.position;
                 m_WaitingAtIntersection = null;
             }
 
@@ -73,9 +83,10 @@ public class Vehicle : MonoBehaviour
 
     private bool IsBlockedByCar()
     {
-        Vector3 lineCastStart = GetPositionAtFollowDistance();// transform.position + (transform.forward * (m_FollowDistance + m_Collider.size.z / 2f));
-        Vector3 lineCastEnd = lineCastStart + transform.forward * m_LinecastHitAdjustOffset * 2f;
-        return Physics.Linecast(lineCastStart, lineCastEnd, m_LayerMaskVehicle);
+        
+        Vector3 linecastStart = transform.position;
+        Vector3 linecastEnd = linecastStart + (transform.forward * (m_FollowDistance + m_Collider.size.z * 0.5f)) + (transform.forward * m_LinecastHitAdjustOffset * 2f); 
+        return Physics.Linecast(linecastStart, linecastEnd, m_LayerMaskVehicle);
     }
 
     private bool TryFindIntersection()
@@ -103,8 +114,20 @@ public class Vehicle : MonoBehaviour
 
         if (m_WaitingAtIntersection != null)
         {
-            return m_WorldTravelDirection != WorldTravelDirection.Unset &&
-                m_WaitingAtIntersection.m_TrafficFlowDirection != m_WorldTravelDirection;
+            //WorldTravelDirection otherTrafficDirection = m_WorldTravelDirection == WorldTravelDirection.X ? WorldTravelDirection.Z : WorldTravelDirection.X;
+            //return (m_WaitingAtIntersection.m_TrafficFlowDirection != m_WorldTravelDirection) || (m_WaitingAtIntersection.m_TrafficFlowDirection == m_WorldTravelDirection &&
+            //    m_WaitingAtIntersection.NumVehiclsInIntersection(otherTrafficDirection) > 0);
+
+            if (m_WaitingAtIntersection.m_TrafficFlowDirection != m_WorldTravelDirection) return true;
+
+
+            WorldTravelDirection otherTrafficDirection = m_WorldTravelDirection == WorldTravelDirection.X ? WorldTravelDirection.Z : WorldTravelDirection.X;
+            if (m_WaitingAtIntersection.m_TrafficFlowDirection == m_WorldTravelDirection &&
+                m_WaitingAtIntersection.NumVehiclsInIntersection(otherTrafficDirection) > 0)
+            {
+                return true;
+            }
+
         }
 
         return false;
@@ -123,8 +146,8 @@ public class Vehicle : MonoBehaviour
 
 
         // Check for other vehicle in font of the vehicle
-        Vector3 lineCastStart = transform.position + (transform.forward * (m_FollowDistance + m_Collider.size.z / 2f));
-        Vector3 lineCastEnd = lineCastStart + desiredPosition;
+        Vector3 lineCastStart = transform.position;// + (transform.forward * (m_FollowDistance + m_Collider.size.z / 2f));
+        Vector3 lineCastEnd = lineCastStart + desiredPosition + (transform.forward * (m_FollowDistance + m_Collider.size.z * 0.5f));
 
         bool moveBlocked = false;
         RaycastHit hit;
@@ -140,19 +163,29 @@ public class Vehicle : MonoBehaviour
 
 
         // check for intersection
-        lineCastStart = transform.position + (transform.forward * m_Collider.size.z / 2f);
-        lineCastEnd = lineCastStart + desiredPosition;
+        lineCastStart = transform.position;// + (transform.forward * m_Collider.size.z / 2f);
+        lineCastEnd = lineCastStart + desiredPosition + (transform.forward * m_Collider.size.z * 0.5f);
 
         if (Physics.Linecast(lineCastStart, lineCastEnd, out hit, m_LayerMaskIntersection))
         {
             IntersectionManager intersectionManager = hit.collider.GetComponent<IntersectionManager>();
-            if (intersectionManager != null && intersectionManager.m_TrafficFlowDirection != m_WorldTravelDirection)
+            if (intersectionManager != null)
             {
-                float hitDistance = hit.distance / Vector3.Distance(lineCastStart, lineCastEnd);
-                desiredPosition = desiredPosition * hitDistance - (transform.rotation * Vector3.forward * m_LinecastHitAdjustOffset);
-                moveBlocked = true;
-                transform.position += desiredPosition;
-                return moveBlocked;
+                if (intersectionManager.m_TrafficFlowDirection != m_WorldTravelDirection)
+                {
+                    float hitDistance = hit.distance / Vector3.Distance(lineCastStart, lineCastEnd);
+                    desiredPosition = desiredPosition * hitDistance - (transform.rotation * Vector3.forward * m_LinecastHitAdjustOffset);
+                    moveBlocked = true;
+                    transform.position += desiredPosition;
+                    return moveBlocked;
+                }
+                else
+                {
+                    if (intersectionManager.VehicleEnteredIntersection(this))
+                    { 
+                        m_LocationWhenEnterendLastIntersection = transform.position;
+                    }
+                }
             }
         }
 

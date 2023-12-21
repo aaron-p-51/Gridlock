@@ -8,7 +8,7 @@ public class PlayerUIController : MonoBehaviour
     [SerializeField] private TMP_Text m_ScoreText;
 
 
-    public void UdpateScore(int score)
+    public void UdpateScoreText(int score)
     {
         m_ScoreText.text = score.ToString();   
     }

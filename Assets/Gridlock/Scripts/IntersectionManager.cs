@@ -8,6 +8,7 @@ public class IntersectionManager : MonoBehaviour
     [SerializeField] private BoxCollider m_IntersectionTrigger;
     [SerializeField] private TrafficLight[] m_TrafficLights;
     [SerializeField] private WorldTravelDirection m_StartingTrafficDirection;
+    [SerializeField] private float m_MinTimeBetweenLightChanges = 1f;
 
 
     public WorldTravelDirection m_TrafficFlowDirection = WorldTravelDirection.X;
@@ -18,6 +19,8 @@ public class IntersectionManager : MonoBehaviour
     private bool m_StopLightXActive = false;
 
     HashSet<Vehicle> m_VehiclesInIntersection = new HashSet<Vehicle>();
+
+    private float m_LastLightChangeTime = 0f;
 
     private void OnValidate()
     {
@@ -30,9 +33,6 @@ public class IntersectionManager : MonoBehaviour
         m_TrafficFlowDirection = m_StartingTrafficDirection;
         //UpdateTrafficLights();
     }
-
-
-
 
     // Start is called before the first frame update
     void Start()
@@ -73,7 +73,6 @@ public class IntersectionManager : MonoBehaviour
         return numVehicles;
     }
 
-
     public bool IsGridlocked()
     {
         if (m_VehiclesInIntersection.Count == 0) return false;
@@ -89,14 +88,18 @@ public class IntersectionManager : MonoBehaviour
         return true;
     }
 
-
     public void TrySwitchTrafficFlow()
     {
-        if (m_VehiclesInIntersection.Count == 0)
+        //if (m_VehiclesInIntersection.Count == 0)
+        //{
+        if (Time.time > (m_LastLightChangeTime + m_MinTimeBetweenLightChanges))
         {
             m_TrafficFlowDirection = m_TrafficFlowDirection == WorldTravelDirection.X ? WorldTravelDirection.Z : WorldTravelDirection.X;
             UpdateTrafficLights();
+
+            m_LastLightChangeTime = Time.time;
         }
+        //}
     }
 
     // Update is called once per frame
@@ -105,19 +108,25 @@ public class IntersectionManager : MonoBehaviour
         InIntersection = m_VehiclesInIntersection.Count;
     }
 
-    public void VehicleEnteredIntersection(Vehicle vehicle)
+    public bool VehicleEnteredIntersection(Vehicle vehicle)
     {
-        m_VehiclesInIntersection.Add(vehicle);
+        return m_VehiclesInIntersection.Add(vehicle); 
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        m_VehiclesInIntersection.Add(other.GetComponent<Vehicle>());
-    }
+
 
     private void OnTriggerExit(Collider other)
     {
-        m_VehiclesInIntersection.Remove(other.GetComponent<Vehicle>());
+        Vehicle vehicle = other.GetComponent<Vehicle>();
+        if (vehicle != null && m_VehiclesInIntersection.Contains(vehicle))
+        {
+            Vector3 currentVehicleLocation = vehicle.transform.position;
+            Debug.LogWarning($"Exited with: {Vector3.SqrMagnitude(currentVehicleLocation - vehicle.m_LocationWhenEnterendLastIntersection)}");
+            if (Vector3.SqrMagnitude(currentVehicleLocation - vehicle.m_LocationWhenEnterendLastIntersection) > 100f)
+            {
+                m_VehiclesInIntersection.Remove(other.GetComponent<Vehicle>());
+            }
+        }
     }
 
     public void UpdateTrafficLights()
