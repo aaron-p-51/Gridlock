@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -19,6 +20,8 @@ public class VehicleSpawner : MonoBehaviour
     RaycastHit m_Hit;
     bool m_HitDetected;
 
+    public static Action<Vehicle> OnVehicleSpawned;
+
     private void OnValidate()
     {
         m_SpawnCollider = GetComponent<BoxCollider>();
@@ -34,15 +37,15 @@ public class VehicleSpawner : MonoBehaviour
     {
         while (true)
         {
-            yield return new WaitForSeconds(Random.Range(m_SpawnRange.x, m_SpawnRange.y));
+            yield return new WaitForSeconds(UnityEngine.Random.Range(m_SpawnRange.x, m_SpawnRange.y));
 
-            if (Random.Range(0f, 1f) < m_SpawnChance)
+            if (UnityEngine.Random.Range(0f, 1f) < m_SpawnChance)
             {
                 RaycastHit hit;
                 Collider[] hitColliders = Physics.OverlapBox(transform.TransformPoint(m_SpawnCollider.center), m_SpawnCollider.size * 0.5f, Quaternion.identity, m_LayerMask);
                 if (hitColliders.Length == 0)
                 {
-                    int prefabIndex = Random.Range(0, m_VehiclePrefabs.Length);
+                    int prefabIndex = UnityEngine.Random.Range(0, m_VehiclePrefabs.Length);
                     Instantiate(m_VehiclePrefabs[prefabIndex], m_SpawnPoint.position, transform.rotation, transform);
                 }
                 else

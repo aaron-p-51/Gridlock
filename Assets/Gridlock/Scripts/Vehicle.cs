@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,9 +14,11 @@ public class Vehicle : MonoBehaviour
     [SerializeField] private float m_LinecastHitAdjustOffset = 0.25f;
     [SerializeField] private LayerMask m_LayerMaskVehicle;
     [SerializeField] private LayerMask m_LayerMaskIntersection;
-    
 
-    bool b_IsStopped = false;
+    public static Action<Vehicle> OnVehicleSpawned;
+    public static Action<Vehicle> OnVehicleDestroyed;
+
+    public bool m_IsStopped { get; private set; }
     private float m_CurrentSpeed;
     private float m_LerpAccelerateTime = 0f;
     public WorldTravelDirection m_WorldTravelDirection { get; private set; }
@@ -23,6 +26,11 @@ public class Vehicle : MonoBehaviour
     public bool m_Scored = false;
 
     private IntersectionManager m_WaitingAtIntersection;
+
+    private void Awake()
+    {
+        OnVehicleSpawned?.Invoke(this);
+    }
 
     private void Start()
     {
@@ -38,13 +46,13 @@ public class Vehicle : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        if (b_IsStopped && !IsBlockedByCar() && !WaitAtIntersection())
+        if (m_IsStopped && !IsBlockedByCar() && !WaitAtIntersection())
         {
-            b_IsStopped = false;
+            m_IsStopped = false;
             return;
         }
 
-        if (!b_IsStopped)
+        if (!m_IsStopped)
         {
             if (m_WaitingAtIntersection != null)
             {
@@ -57,7 +65,7 @@ public class Vehicle : MonoBehaviour
             {
                 m_CurrentSpeed = 0f;
                 m_LerpAccelerateTime = 0f;
-                b_IsStopped = true;
+                m_IsStopped = true;
             }
         }       
     }
@@ -190,6 +198,11 @@ public class Vehicle : MonoBehaviour
         }
 
         return currentSpeed;
+    }
+
+    private void OnDestroy()
+    {
+        OnVehicleDestroyed?.Invoke(this);
     }
 
     private void OnDrawGizmos()

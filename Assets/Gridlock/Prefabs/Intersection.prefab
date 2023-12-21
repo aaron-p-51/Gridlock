@@ -186,7 +186,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35a5063e01118db45b2522050e0514a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_IntersectionTrigger: {fileID: 0}
+  m_IntersectionTrigger: {fileID: 8138313868966744248}
   m_TrafficLights:
   - {fileID: 3768136978522344060}
   - {fileID: 5366435151308510070}
@@ -195,6 +195,7 @@ MonoBehaviour:
   m_StartingTrafficDirection: 0
   m_TrafficFlowDirection: 0
   InIntersection: 0
+  m_IsGridlockedInspector: 0
 --- !u!65 &8138313868966744248
 BoxCollider:
   m_ObjectHideFlags: 0

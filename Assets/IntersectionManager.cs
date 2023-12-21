@@ -12,9 +12,9 @@ public class IntersectionManager : MonoBehaviour
 
     public WorldTravelDirection m_TrafficFlowDirection = WorldTravelDirection.X;
 
-
+    public bool m_IsGridlocked { get; private set; }
     public int InIntersection;
-
+    public bool m_IsGridlockedInspector;
     private bool m_StopLightXActive = false;
 
     HashSet<Vehicle> m_VehiclesInIntersection = new HashSet<Vehicle>();
@@ -74,12 +74,29 @@ public class IntersectionManager : MonoBehaviour
     }
 
 
+    public bool IsGridlocked()
+    {
+        if (m_VehiclesInIntersection.Count == 0) return false;
+
+        foreach (Vehicle vehicle in m_VehiclesInIntersection)
+        {
+            if (!vehicle.m_IsStopped)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
     public void TrySwitchTrafficFlow()
     {
-
-        if (m_VehiclesInIntersection.Count > 0) return;
-        m_TrafficFlowDirection = m_TrafficFlowDirection == WorldTravelDirection.X ? WorldTravelDirection.Z : WorldTravelDirection.X;
-        UpdateTrafficLights();
+        if (m_VehiclesInIntersection.Count == 0)
+        {
+            m_TrafficFlowDirection = m_TrafficFlowDirection == WorldTravelDirection.X ? WorldTravelDirection.Z : WorldTravelDirection.X;
+            UpdateTrafficLights();
+        }
     }
 
     // Update is called once per frame

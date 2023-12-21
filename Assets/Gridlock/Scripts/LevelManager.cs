@@ -15,15 +15,25 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private float m_LevelTime;
     [SerializeField] private VehicleSpawner[] m_VehicleSpawners;
     [SerializeField] private List<SpawnerControls> m_SpawnerControls = new List<SpawnerControls>();
+    [SerializeField] private IntersectionManager[] m_IntersectionManagers;
+
+    private List<Vehicle> m_SpawnedVehicles = new List<Vehicle>();
 
 
     private float m_TimeElapsed;
 
-    // Start is called before the first frame update
-    void Start()
+    private void Awake()
     {
-        
+        Vehicle.OnVehicleSpawned += HandleOnVehicleSpawned;
+        Vehicle.OnVehicleDestroyed += HandleOnVehicleDestroyed;
     }
+
+    private void Start()
+    {
+        StartCoroutine(CheckForGridlock());
+    }
+
+    // Start is called before the first frame update
 
     // Update is called once per frame
     void Update()
@@ -38,5 +48,54 @@ public class LevelManager : MonoBehaviour
 
             m_SpawnerControls.RemoveAt(0);
         }
+    }
+
+    private void HandleOnVehicleSpawned(Vehicle vehicle)
+    {
+        m_SpawnedVehicles.Add(vehicle);
+    }
+
+    private void HandleOnVehicleDestroyed(Vehicle vehicle)
+    {
+        m_SpawnedVehicles.Remove(vehicle);
+    }
+
+    private IEnumerator CheckForGridlock()
+    {
+        while (true)
+        {
+            if (AllIntersectionsGridlocked() && AllUnscoredVehiclesStopped())
+            {
+                Debug.LogError("Grid Lock!!!");
+            }
+
+            yield return new WaitForSeconds(1.5f);
+        }
+    }
+
+    public bool AllIntersectionsGridlocked()
+    {
+        foreach (IntersectionManager intersectionManager in m_IntersectionManagers)
+        {
+            if (!intersectionManager.IsGridlocked())
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public bool AllUnscoredVehiclesStopped()
+    {
+        foreach (Vehicle vehicle in m_SpawnedVehicles)
+        {
+            if (!vehicle.m_IsStopped && !vehicle.m_Scored)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
