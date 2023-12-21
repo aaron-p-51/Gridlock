@@ -21,7 +21,7 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private float m_BaseVehicleScore;
 
     public float m_Score { get; private set; }
-    public static Action<float> OnScoreChange;
+    //public static Action<float> OnScoreChange;
 
 
     private List<Vehicle> m_SpawnedVehicles = new List<Vehicle>();
@@ -31,16 +31,16 @@ public class LevelManager : MonoBehaviour
 
     private void Awake()
     {
-        Vehicle.OnVehicleSpawned += HandleOnVehicleSpawned;
-        Vehicle.OnVehicleDestroyed += HandleOnVehicleDestroyed;
-        ScoreVehicle.OnVehicleEnterScoreVolue += HandleOnVehicleEnterScoreVolume;
+        EventManager.OnVehicleSpawned += HandleOnVehicleSpawned;
+        EventManager.OnVehicleDestroyed += HandleOnVehicleDestroyed;
+        EventManager.OnVehicleEnterScoreTrigger += HandleOnVehicleEnterScoreTrigger;
     }
 
     private void OnDestroy()
     {
-        Vehicle.OnVehicleSpawned -= HandleOnVehicleSpawned;
-        Vehicle.OnVehicleDestroyed -= HandleOnVehicleDestroyed;
-        ScoreVehicle.OnVehicleEnterScoreVolue -= HandleOnVehicleEnterScoreVolume;
+        EventManager.OnVehicleSpawned -= HandleOnVehicleSpawned;
+        EventManager.OnVehicleDestroyed -= HandleOnVehicleDestroyed;
+        EventManager.OnVehicleEnterScoreTrigger -= HandleOnVehicleEnterScoreTrigger;
     }
 
     private void Start()
@@ -75,10 +75,10 @@ public class LevelManager : MonoBehaviour
         m_SpawnedVehicles.Remove(vehicle);
     }
 
-    private void HandleOnVehicleEnterScoreVolume(Vehicle vehicle)
+    private void HandleOnVehicleEnterScoreTrigger(Vehicle vehicle)
     {
         m_Score += m_ScoreVsTimeWaitedAtIntersection.Evaluate(vehicle.m_TimeWaitingAtIntersection) + m_BaseVehicleScore;
-        OnScoreChange?.Invoke(m_Score);
+        EventManager.RaiseOnScoreChange(m_Score);
     }
 
     private IEnumerator CheckForGridlock()

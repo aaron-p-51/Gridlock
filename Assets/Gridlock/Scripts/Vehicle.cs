@@ -15,8 +15,8 @@ public class Vehicle : MonoBehaviour
     [SerializeField] private LayerMask m_LayerMaskVehicle;
     [SerializeField] private LayerMask m_LayerMaskIntersection;
 
-    public static Action<Vehicle> OnVehicleSpawned;
-    public static Action<Vehicle> OnVehicleDestroyed;
+    //public static Action<Vehicle> OnVehicleSpawned;
+    //public static Action<Vehicle> OnVehicleDestroyed;
 
     public float m_TimeWaitingAtIntersection { get; private set; }
     public Vector3 m_LocationWhenEnterendLastIntersection { get; private set; }
@@ -32,7 +32,8 @@ public class Vehicle : MonoBehaviour
 
     private void Awake()
     {
-        OnVehicleSpawned?.Invoke(this);
+        //OnVehicleSpawned?.Invoke(this);
+        EventManager.OnVehicleSpawned?.Invoke(this);
         m_WorldTravelDirection = ComputeWorldTravelDirection();
         m_TimeWaitingAtIntersection = 0f;
     }
@@ -84,6 +85,7 @@ public class Vehicle : MonoBehaviour
     private bool IsBlockedByCar()
     {
         
+
         Vector3 linecastStart = transform.position;
         Vector3 linecastEnd = linecastStart + (transform.forward * (m_FollowDistance + m_Collider.size.z * 0.5f)) + (transform.forward * m_LinecastHitAdjustOffset * 2f); 
         return Physics.Linecast(linecastStart, linecastEnd, m_LayerMaskVehicle);
@@ -213,13 +215,28 @@ public class Vehicle : MonoBehaviour
         return currentSpeed;
     }
 
+    public Vector3 GetForwardColliderPosition()
+    {
+        Vector3 worldColliderCenter = transform.TransformPoint(m_Collider.center);
+        return worldColliderCenter + transform.forward * m_Collider.size.z * 0.5f;
+    }
+
     private void OnDestroy()
     {
-        OnVehicleDestroyed?.Invoke(this);
+        EventManager.OnVehicleDestroyed(this);
+        //OnVehicleDestroyed?.Invoke(this);
     }
 
     private void OnDrawGizmos()
     {
+        Gizmos.color = Color.white;
+        Vector3 colliderCenter = transform.TransformPoint(m_Collider.center);
+        Vector3 colliderFront = colliderCenter + transform.forward * m_Collider.size.z * 0.5f;
+        Gizmos.DrawSphere(colliderFront, 0.25f);
+
+        Ray r = new Ray(colliderFront, transform.forward * 10f);
+        Gizmos.DrawRay(r);
+
         Gizmos.color = Color.green;
         Vector3 stopStart = transform.position + transform.forward * m_Collider.size.z / 2f;
         Gizmos.DrawSphere(stopStart, 0.25f);

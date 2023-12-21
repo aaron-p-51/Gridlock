@@ -11,12 +11,12 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
-        LevelManager.OnScoreChange += HandleOnScoreChange;
+        //LevelManager.OnScoreChange += HandleOnScoreChange;
     }
 
     private void OnDestroy()
     {
-        LevelManager.OnScoreChange -= HandleOnScoreChange;
+        //LevelManager.OnScoreChange -= HandleOnScoreChange;
     }
 
     // Update is called once per frame
@@ -38,10 +38,10 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void HandleOnScoreChange(float score)
-    {
-        m_PlayerUIController.UdpateScoreText(Mathf.RoundToInt(score));
-    }
+    //private void HandleOnScoreChange(float score)
+    //{
+    //    m_PlayerUIController.UdpateInGameScoreText(Mathf.RoundToInt(score));
+    //}
 
 
 }
