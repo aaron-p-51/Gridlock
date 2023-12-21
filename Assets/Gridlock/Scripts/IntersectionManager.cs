@@ -73,6 +73,14 @@ public class IntersectionManager : MonoBehaviour
         return numVehicles;
     }
 
+    public bool CanEnterIntersection(Vehicle vehicle)
+    {
+        // get the other vehicle travel direction
+        WorldTravelDirection otherVehicleTravelDirection = vehicle.m_WorldTravelDirection == WorldTravelDirection.X ? WorldTravelDirection.Z : WorldTravelDirection.X;
+
+        return NumVehiclsInIntersection(otherVehicleTravelDirection) <= 0;
+    }
+
     public bool IsGridlocked()
     {
         if (m_VehiclesInIntersection.Count == 0) return false;

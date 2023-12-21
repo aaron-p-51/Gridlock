@@ -30,6 +30,8 @@ public class Vehicle : MonoBehaviour
 
     private IntersectionManager m_WaitingAtIntersection;
 
+    private HashSet<IntersectionManager> m_EnteredIntersections = new HashSet<IntersectionManager>();
+
     private void Awake()
     {
         //OnVehicleSpawned?.Invoke(this);
@@ -47,34 +49,37 @@ public class Vehicle : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        if (m_IsStopped && m_WaitingAtIntersection != null)
-        {
-            m_TimeWaitingAtIntersection += Time.deltaTime;
-        }
+        Move();
+        return;
 
-        if (m_IsStopped && !IsBlockedByCar() && !WaitAtIntersection())
-        {
-            m_IsStopped = false;
-            return;
-        }
+        //if (m_IsStopped && m_WaitingAtIntersection != null)
+        //{
+        //    m_TimeWaitingAtIntersection += Time.deltaTime;
+        //}
 
-        if (!m_IsStopped)
-        {
-            if (m_WaitingAtIntersection != null)
-            {
-                m_WaitingAtIntersection.VehicleEnteredIntersection(this);
-                m_LocationWhenEnterendLastIntersection = transform.position;
-                m_WaitingAtIntersection = null;
-            }
+        //if (m_IsStopped && !IsBlockedByCar() && !WaitAtIntersection())
+        //{
+        //    m_IsStopped = false;
+        //    return;
+        //}
 
-            bool moveBlocked = Move();
-            if (moveBlocked)
-            {
-                m_CurrentSpeed = 0f;
-                m_LerpAccelerateTime = 0f;
-                m_IsStopped = true;
-            }
-        }       
+        //if (!m_IsStopped)
+        //{
+        //    if (m_WaitingAtIntersection != null)
+        //    {
+        //        m_WaitingAtIntersection.VehicleEnteredIntersection(this);
+        //        m_LocationWhenEnterendLastIntersection = transform.position;
+        //        m_WaitingAtIntersection = null;
+        //    }
+
+        //    bool moveBlocked = Move();
+        //    if (moveBlocked)
+        //    {
+        //        m_CurrentSpeed = 0f;
+        //        m_LerpAccelerateTime = 0f;
+        //        m_IsStopped = true;
+        //    }
+        //}       
     }
 
     public Vector3 GetPositionAtFollowDistance()
@@ -140,64 +145,140 @@ public class Vehicle : MonoBehaviour
         return transform.position;
     }
 
-    private bool Move()
+    private void Move()
     {
         m_CurrentSpeed = GetCurrentSpeed();
-
-        Vector3 desiredPosition = transform.forward * Time.deltaTime * m_CurrentSpeed;
-
-
-        // Check for other vehicle in font of the vehicle
-        Vector3 lineCastStart = transform.position;// + (transform.forward * (m_FollowDistance + m_Collider.size.z / 2f));
-        Vector3 lineCastEnd = lineCastStart + desiredPosition + (transform.forward * (m_FollowDistance + m_Collider.size.z * 0.5f));
-
-        bool moveBlocked = false;
         RaycastHit hit;
-
-        if (Physics.Linecast(lineCastStart, lineCastEnd, out hit, m_LayerMaskVehicle))
-        {
-            float hitDistance = hit.distance / Vector3.Distance(lineCastStart, lineCastEnd);
-            desiredPosition = desiredPosition * hitDistance - (transform.rotation * Vector3.forward * m_LinecastHitAdjustOffset);
-            moveBlocked = true;
-            transform.position += desiredPosition;
-            return moveBlocked;
-        }
-
-
-        // check for intersection
-        lineCastStart = transform.position;// + (transform.forward * m_Collider.size.z / 2f);
-        lineCastEnd = lineCastStart + desiredPosition + (transform.forward * m_Collider.size.z * 0.5f);
-
-        if (Physics.Linecast(lineCastStart, lineCastEnd, out hit, m_LayerMaskIntersection))
+        Ray ray = new Ray(GetForwardColliderPosition(), transform.forward);
+        if (Physics.Raycast(ray, out hit, m_FollowDistance, m_LayerMaskIntersection | m_LayerMaskVehicle))
         {
             IntersectionManager intersectionManager = hit.collider.GetComponent<IntersectionManager>();
-            if (intersectionManager != null)
+            if (intersectionManager && hit.distance < Time.deltaTime * m_CurrentSpeed)
             {
-                if (intersectionManager.m_TrafficFlowDirection != m_WorldTravelDirection)
-                {
-                    float hitDistance = hit.distance / Vector3.Distance(lineCastStart, lineCastEnd);
-                    desiredPosition = desiredPosition * hitDistance - (transform.rotation * Vector3.forward * m_LinecastHitAdjustOffset);
-                    moveBlocked = true;
-                    transform.position += desiredPosition;
-                    return moveBlocked;
-                }
-                else
-                {
-                    if (intersectionManager.VehicleEnteredIntersection(this))
-                    { 
-                        m_LocationWhenEnterendLastIntersection = transform.position;
-                    }
-                }
+                float hitDistance = Mathf.Clamp(hit.distance / Vector3.Distance(ray.origin, ray.origin + ray.direction * Time.deltaTime * m_CurrentSpeed), 0f, 1f);
+
+                float moveDistance = Mathf.Clamp(Time.deltaTime * m_CurrentSpeed * hitDistance - m_LinecastHitAdjustOffset, 0f, Time.deltaTime * m_CurrentSpeed * hitDistance);
+                transform.position += transform.forward * moveDistance;
+                ResetCurrentSpeed();
+                return;
+            }
+
+            Vehicle hitVehicle = hit.collider.GetComponent<Vehicle>();
+            if (hitVehicle && hit.distance > Time.deltaTime * m_CurrentSpeed)
+            {
+                float hitDistance = Mathf.Clamp(hit.distance / Vector3.Distance(ray.origin, ray.origin + ray.direction * m_FollowDistance), 0f, 1f);
+                float moveDistance = Mathf.Clamp(Time.deltaTime * m_CurrentSpeed * hitDistance - m_LinecastHitAdjustOffset, 0f, Time.deltaTime * m_CurrentSpeed * hitDistance);
+                transform.position += transform.forward * moveDistance;
+                ResetCurrentSpeed();
+                return;
             }
         }
+        else
+        {
+            
+        }
 
-        transform.position += desiredPosition;
-        return moveBlocked;
+        transform.position += transform.forward * Time.deltaTime * m_CurrentSpeed;
+
+        //if (m_IsStopped)
+        //{
+        //    // Check if blocked by car or intersection
+        //    if (!Physics.Raycast(GetForwardColliderPosition(), transform.forward, m_FollowDistance, m_LayerMaskIntersection | m_LayerMaskVehicle))
+        //    {
+        //        m_IsStopped = false;
+        //    }
+        //}
+        //else
+        //{
+        //    m_CurrentSpeed = GetCurrentSpeed();
+
+        //    //Vector3 desiredPosition = transform.forward * Time.deltaTime * m_CurrentSpeed;
+        //    float moveDistance = Time.deltaTime * m_CurrentSpeed;
+
+        //    ray = new Ray(GetForwardColliderPosition(), transform.forward);
+        //    //RaycastHit hit;
+        //    if (Physics.Raycast(ray, out hit, moveDistance, m_LayerMaskIntersection | m_LayerMaskVehicle))
+        //    {
+        //        IntersectionManager intersectionManager = hit.collider.GetComponent<IntersectionManager>();
+        //        if (intersectionManager != null)
+        //        {
+        //            float hitDistance = Mathf.Clamp(hit.distance / Vector3.Distance(ray.origin, ray.origin + ray.direction * moveDistance), 0f, 1f);
+        //            moveDistance = moveDistance * hitDistance * 0.1f;
+        //            transform.position += transform.forward * moveDistance;
+        //            m_IsStopped = true;
+        //            return;
+        //        }
+
+        //        Vehicle hitVehicle = hit.collider.GetComponent<Vehicle>();
+        //        if (hitVehicle)
+        //        {
+        //            float hitDistance = Mathf.Clamp(hit.distance / Vector3.Distance(ray.origin, ray.origin))
+        //        }
+
+        //        return;
+        //    }
+
+        //    transform.position += transform.forward * Time.deltaTime * m_CurrentSpeed;
+        //}
+
+
+
+
+
+        //// Check for other vehicle in font of the vehicle
+        //Vector3 lineCastStart = transform.position;// + (transform.forward * (m_FollowDistance + m_Collider.size.z / 2f));
+        //Vector3 lineCastEnd = lineCastStart + desiredPosition + (transform.forward * (m_FollowDistance + m_Collider.size.z * 0.5f));
+
+        //bool moveBlocked = false;
+        //RaycastHit hit;
+
+        //if (Physics.Linecast(lineCastStart, lineCastEnd, out hit, m_LayerMaskVehicle))
+        //{
+        //    float hitDistance = hit.distance / Vector3.Distance(lineCastStart, lineCastEnd);
+        //    desiredPosition = desiredPosition * hitDistance - (transform.rotation * Vector3.forward * m_LinecastHitAdjustOffset);
+        //    moveBlocked = true;
+        //    transform.position += desiredPosition;
+        //    return moveBlocked;
+        //}
+
+
+        //// check for intersection
+        //lineCastStart = transform.position;// + (transform.forward * m_Collider.size.z / 2f);
+        //lineCastEnd = lineCastStart + desiredPosition + (transform.forward * m_Collider.size.z * 0.5f);
+
+        //if (Physics.Linecast(lineCastStart, lineCastEnd, out hit, m_LayerMaskIntersection))
+        //{
+        //    IntersectionManager intersectionManager = hit.collider.GetComponent<IntersectionManager>();
+        //    if (intersectionManager != null)
+        //    {
+        //        if (intersectionManager.m_TrafficFlowDirection != m_WorldTravelDirection)
+        //        {
+        //            float hitDistance = hit.distance / Vector3.Distance(lineCastStart, lineCastEnd);
+        //            desiredPosition = desiredPosition * hitDistance - (transform.rotation * Vector3.forward * m_LinecastHitAdjustOffset);
+        //            moveBlocked = true;
+        //            transform.position += desiredPosition;
+        //            return moveBlocked;
+        //        }
+        //        else
+        //        {
+        //            if (intersectionManager.VehicleEnteredIntersection(this))
+        //            { 
+        //                m_LocationWhenEnterendLastIntersection = transform.position;
+        //            }
+        //        }
+        //    }
+        //}
+
+        //transform.position += desiredPosition;
+        //return moveBlocked;
     }
 
 
-
-
+    public void ResetCurrentSpeed()
+    {
+        m_CurrentSpeed = 0f;
+        m_AccelerateTime = 0f;
+    }   
 
     private float GetCurrentSpeed()
     {
@@ -223,7 +304,7 @@ public class Vehicle : MonoBehaviour
 
     private void OnDestroy()
     {
-        EventManager.OnVehicleDestroyed(this);
+        EventManager.RaiseOnVehicleDestroyed(this);
         //OnVehicleDestroyed?.Invoke(this);
     }
 
