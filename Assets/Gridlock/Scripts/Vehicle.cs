@@ -30,10 +30,6 @@ public class Vehicle : MonoBehaviour
     private void Awake()
     {
         OnVehicleSpawned?.Invoke(this);
-    }
-
-    private void Start()
-    {
         m_WorldTravelDirection = ComputeWorldTravelDirection();
     }
 
@@ -70,16 +66,21 @@ public class Vehicle : MonoBehaviour
         }       
     }
 
+    public Vector3 GetPositionAtFollowDistance()
+    {
+        return transform.position + (transform.forward * (m_FollowDistance + m_Collider.size.z * 0.5f));
+    }
+
     private bool IsBlockedByCar()
     {
-        Vector3 lineCastStart = transform.position + (transform.forward * (m_FollowDistance + m_Collider.size.z / 2f));
+        Vector3 lineCastStart = GetPositionAtFollowDistance();// transform.position + (transform.forward * (m_FollowDistance + m_Collider.size.z / 2f));
         Vector3 lineCastEnd = lineCastStart + transform.forward * m_LinecastHitAdjustOffset * 2f;
         return Physics.Linecast(lineCastStart, lineCastEnd, m_LayerMaskVehicle);
     }
 
     private bool TryFindIntersection()
     {
-        Vector3 lineCastStart = transform.position; //transform.position + (transform.forward * m_Collider.size.z / 2f);
+        Vector3 lineCastStart = transform.position;
         Vector3 lineCastEnd = lineCastStart + transform.forward * m_LinecastHitAdjustOffset * 2f + (transform.forward * m_Collider.size.z / 2f);
 
         RaycastHit hit;
@@ -107,25 +108,6 @@ public class Vehicle : MonoBehaviour
         }
 
         return false;
-
-
-        //WorldSpawnDirection otherVehicleDirection = m_WorldSpawnDirection == WorldSpawnDirection.X ? WorldSpawnDirection.Z : WorldSpawnDirection.X;
-        //if (m_WaitingAtStoplight != null && m_WaitingAtStoplight.VehiclesInIntersection(otherVehicleDirection))
-        //{
-        //    return true;
-        //}
-
-        ////Vector3 lineCastStart = transform.position; //transform.position + (transform.forward * m_Collider.size.z / 2f);
-        ////Vector3 lineCastEnd = lineCastStart + transform.forward * m_LinecastHitAdjustOffset * 2f + (transform.forward * m_Collider.size.z / 2f);
-
-        //RaycastHit hit;
-        //if (Physics.Linecast(lineCastStart, lineCastEnd, out hit, m_LayerMaskIntersection))
-        //{
-        //    m_WaitingAtStoplight = hit.collider.GetComponent<Stoplight>();
-        //    return true;
-        //}
-
-        //return false;
     }
 
     public Vector3 GetColliderFrontPosition()
@@ -143,8 +125,6 @@ public class Vehicle : MonoBehaviour
         // Check for other vehicle in font of the vehicle
         Vector3 lineCastStart = transform.position + (transform.forward * (m_FollowDistance + m_Collider.size.z / 2f));
         Vector3 lineCastEnd = lineCastStart + desiredPosition;
-        //Vector3 lineCastStart = transform.position;// + (transform.forward * m_Collider.size.z / 2f);
-        //Vector3 lineCastEnd = lineCastStart + desiredPosition + (transform.forward * (m_FollowDistance + m_Collider.size.z / 2f));
 
         bool moveBlocked = false;
         RaycastHit hit;
