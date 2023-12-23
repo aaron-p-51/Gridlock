@@ -75,10 +75,12 @@ public class IntersectionManager : MonoBehaviour
 
     public bool CanEnterIntersection(Vehicle vehicle)
     {
+        if (m_VehiclesInIntersection.Contains(vehicle)) return true;
+        
+        if (m_TrafficFlowDirection == WorldTravelDirection.Unset || m_TrafficFlowDirection != vehicle.m_WorldTravelDirection) return false;
         // get the other vehicle travel direction
-        WorldTravelDirection otherVehicleTravelDirection = vehicle.m_WorldTravelDirection == WorldTravelDirection.X ? WorldTravelDirection.Z : WorldTravelDirection.X;
-
-        return NumVehiclsInIntersection(otherVehicleTravelDirection) <= 0;
+        WorldTravelDirection otherVehicleTravelDirection = GetOtherWorldTravelDirection(vehicle.m_WorldTravelDirection);
+        return NumVehiclsInIntersection(otherVehicleTravelDirection) <= 0 && m_TrafficFlowDirection == vehicle.m_WorldTravelDirection;
     }
 
     public bool IsGridlocked()
@@ -96,6 +98,10 @@ public class IntersectionManager : MonoBehaviour
         return true;
     }
 
+    public static WorldTravelDirection GetOtherWorldTravelDirection(WorldTravelDirection worldTravelDirection)
+    {
+        return worldTravelDirection == WorldTravelDirection.X ? WorldTravelDirection.Z : WorldTravelDirection.X;
+    }
     public void TrySwitchTrafficFlow()
     {
         //if (m_VehiclesInIntersection.Count == 0)
@@ -121,6 +127,10 @@ public class IntersectionManager : MonoBehaviour
         return m_VehiclesInIntersection.Add(vehicle); 
     }
 
+    public bool VehicleInIntersection(Vehicle vehicle)
+    {
+        return m_VehiclesInIntersection.Contains(vehicle);
+    }
 
 
     private void OnTriggerExit(Collider other)
@@ -129,7 +139,7 @@ public class IntersectionManager : MonoBehaviour
         if (vehicle != null && m_VehiclesInIntersection.Contains(vehicle))
         {
             Vector3 currentVehicleLocation = vehicle.transform.position;
-            Debug.LogWarning($"Exited with: {Vector3.SqrMagnitude(currentVehicleLocation - vehicle.m_LocationWhenEnterendLastIntersection)}");
+            
             if (Vector3.SqrMagnitude(currentVehicleLocation - vehicle.m_LocationWhenEnterendLastIntersection) > 100f)
             {
                 m_VehiclesInIntersection.Remove(other.GetComponent<Vehicle>());

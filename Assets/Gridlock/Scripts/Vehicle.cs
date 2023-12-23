@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 public enum WorldTravelDirection { X, Z, Unset };
 
@@ -18,6 +19,7 @@ public class Vehicle : MonoBehaviour
     //public static Action<Vehicle> OnVehicleSpawned;
     //public static Action<Vehicle> OnVehicleDestroyed;
 
+    private Vector3 hitLocation = Vector3.zero;
     public float m_TimeWaitingAtIntersection { get; private set; }
     public Vector3 m_LocationWhenEnterendLastIntersection { get; private set; }
 
@@ -49,6 +51,7 @@ public class Vehicle : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
+        
         Move();
         return;
 
@@ -82,49 +85,78 @@ public class Vehicle : MonoBehaviour
         //}       
     }
 
-    public Vector3 GetPositionAtFollowDistance()
+    private void UpdateCurrentSpeed()
     {
-        return transform.position + (transform.forward * (m_FollowDistance + m_Collider.size.z * 0.5f));
-    }
-
-    private bool IsBlockedByCar()
-    {
-        
-
-        Vector3 linecastStart = transform.position;
-        Vector3 linecastEnd = linecastStart + (transform.forward * (m_FollowDistance + m_Collider.size.z * 0.5f)) + (transform.forward * m_LinecastHitAdjustOffset * 2f); 
-        return Physics.Linecast(linecastStart, linecastEnd, m_LayerMaskVehicle);
-    }
-
-    private bool TryFindIntersection()
-    {
-        Vector3 lineCastStart = transform.position;
-        Vector3 lineCastEnd = lineCastStart + transform.forward * m_LinecastHitAdjustOffset * 2f + (transform.forward * m_Collider.size.z / 2f);
-
-        RaycastHit hit;
-        if (Physics.Linecast(lineCastStart, lineCastEnd, out hit, m_LayerMaskIntersection))
+        if (m_AccelerateTime > 0f)
         {
-            m_WaitingAtIntersection = hit.collider.GetComponent<IntersectionManager>();
-            return true;
+            m_LerpAccelerateTime += Time.deltaTime;
+            m_CurrentSpeed = Mathf.Lerp(0f, m_Speed, Mathf.Clamp(m_LerpAccelerateTime / m_AccelerateTime, 0f, 1f));
+        }
+        else
+        {
+            m_CurrentSpeed = m_Speed;
+        }
+    }
+
+    //public Vector3 GetPositionAtFollowDistance()
+    //{
+    //    return transform.position + (transform.forward * (m_FollowDistance + m_Collider.size.z * 0.5f));
+    //}
+
+    public bool IsBlockedByCar() => Physics.Raycast(GetForwardColliderPosition(), transform.forward, m_FollowDistance + m_LinecastHitAdjustOffset * 2f, m_LayerMaskVehicle);
+    //{
+    //    //Ray ray = new Ray(GetForwardColliderPosition(), transform.forward);
+    //    //return Physics.Raycast(ray, m_FollowDistance, m_LayerMaskVehicle);
+
+    //    //Vector3 linecastStart = transform.position;
+    //    //Vector3 linecastEnd = linecastStart + (transform.forward * (m_FollowDistance + m_Collider.size.z * 0.5f)) + (transform.forward * m_LinecastHitAdjustOffset * 2f); 
+    //    //return Physics.Linecast(linecastStart, linecastEnd, m_LayerMaskVehicle);
+    //}
+
+    //public bool IsBlockedAtIntersection()
+    //{
+
+    //}
+
+    public IntersectionManager TryFindIntersection()
+    {
+        Ray ray = new Ray(GetForwardColliderPosition(), transform.forward);
+        RaycastHit hit;
+        //IntersectionManager intersectionManager = null;
+        if (Physics.Raycast(ray, out hit, m_LinecastHitAdjustOffset * 2f, m_LayerMaskIntersection))
+        {
+            /*intersectionManager =*/ return hit.collider.GetComponent<IntersectionManager>();
+            
         }
 
-        return false;
+        //return intersectionManager;
+        return null;
+
+
+
+        //Vector3 lineCastStart = transform.position;
+        //Vector3 lineCastEnd = lineCastStart + transform.forward * m_LinecastHitAdjustOffset * 2f + (transform.forward * m_Collider.size.z / 2f);
+
+        //RaycastHit hit;
+        //if (Physics.Linecast(lineCastStart, lineCastEnd, out hit, m_LayerMaskIntersection))
+        //{
+        //    m_WaitingAtIntersection = hit.collider.GetComponent<IntersectionManager>();
+        //    return true;
+        //}
+
+        //return false;
     }
 
 
     private bool WaitAtIntersection()
     {
-        if (m_WaitingAtIntersection == null)
-        {
-           TryFindIntersection();
-        }
+        //if (m_WaitingAtIntersection == null)
+        //{
+        //   TryFindIntersection();
+        //}
 
         if (m_WaitingAtIntersection != null)
         {
-            //WorldTravelDirection otherTrafficDirection = m_WorldTravelDirection == WorldTravelDirection.X ? WorldTravelDirection.Z : WorldTravelDirection.X;
-            //return (m_WaitingAtIntersection.m_TrafficFlowDirection != m_WorldTravelDirection) || (m_WaitingAtIntersection.m_TrafficFlowDirection == m_WorldTravelDirection &&
-            //    m_WaitingAtIntersection.NumVehiclsInIntersection(otherTrafficDirection) > 0);
-
             if (m_WaitingAtIntersection.m_TrafficFlowDirection != m_WorldTravelDirection) return true;
 
 
@@ -140,137 +172,86 @@ public class Vehicle : MonoBehaviour
         return false;
     }
 
-    public Vector3 GetColliderFrontPosition()
+    public bool m_LogMe = false;
+    public void Log(int num)
     {
-        return transform.position;
+        if (m_LogMe)
+        {
+            Debug.Log(num);
+        }
     }
 
     private void Move()
     {
-        m_CurrentSpeed = GetCurrentSpeed();
-        RaycastHit hit;
-        Ray ray = new Ray(GetForwardColliderPosition(), transform.forward);
-        if (Physics.Raycast(ray, out hit, m_FollowDistance, m_LayerMaskIntersection | m_LayerMaskVehicle))
+        if (m_IsStopped)
         {
-            IntersectionManager intersectionManager = hit.collider.GetComponent<IntersectionManager>();
-            if (intersectionManager && hit.distance < Time.deltaTime * m_CurrentSpeed)
+            if (!IsBlockedByCar())
             {
-                float hitDistance = Mathf.Clamp(hit.distance / Vector3.Distance(ray.origin, ray.origin + ray.direction * Time.deltaTime * m_CurrentSpeed), 0f, 1f);
-
-                float moveDistance = Mathf.Clamp(Time.deltaTime * m_CurrentSpeed * hitDistance - m_LinecastHitAdjustOffset, 0f, Time.deltaTime * m_CurrentSpeed * hitDistance);
-                transform.position += transform.forward * moveDistance;
-                ResetCurrentSpeed();
-                return;
-            }
-
-            Vehicle hitVehicle = hit.collider.GetComponent<Vehicle>();
-            if (hitVehicle && hit.distance > Time.deltaTime * m_CurrentSpeed)
-            {
-                float hitDistance = Mathf.Clamp(hit.distance / Vector3.Distance(ray.origin, ray.origin + ray.direction * m_FollowDistance), 0f, 1f);
-                float moveDistance = Mathf.Clamp(Time.deltaTime * m_CurrentSpeed * hitDistance - m_LinecastHitAdjustOffset, 0f, Time.deltaTime * m_CurrentSpeed * hitDistance);
-                transform.position += transform.forward * moveDistance;
-                ResetCurrentSpeed();
-                return;
+                if (m_WaitingAtIntersection)
+                {
+                    if (m_WaitingAtIntersection.CanEnterIntersection(this))
+                    {
+                        m_IsStopped = false;
+                    }
+                }
+                else
+                {
+                    m_IsStopped = false;
+                }
             }
         }
         else
         {
-            
-        }
 
-        transform.position += transform.forward * Time.deltaTime * m_CurrentSpeed;
-
-        //if (m_IsStopped)
-        //{
-        //    // Check if blocked by car or intersection
-        //    if (!Physics.Raycast(GetForwardColliderPosition(), transform.forward, m_FollowDistance, m_LayerMaskIntersection | m_LayerMaskVehicle))
-        //    {
-        //        m_IsStopped = false;
-        //    }
-        //}
-        //else
-        //{
-        //    m_CurrentSpeed = GetCurrentSpeed();
-
-        //    //Vector3 desiredPosition = transform.forward * Time.deltaTime * m_CurrentSpeed;
-        //    float moveDistance = Time.deltaTime * m_CurrentSpeed;
-
-        //    ray = new Ray(GetForwardColliderPosition(), transform.forward);
-        //    //RaycastHit hit;
-        //    if (Physics.Raycast(ray, out hit, moveDistance, m_LayerMaskIntersection | m_LayerMaskVehicle))
-        //    {
-        //        IntersectionManager intersectionManager = hit.collider.GetComponent<IntersectionManager>();
-        //        if (intersectionManager != null)
-        //        {
-        //            float hitDistance = Mathf.Clamp(hit.distance / Vector3.Distance(ray.origin, ray.origin + ray.direction * moveDistance), 0f, 1f);
-        //            moveDistance = moveDistance * hitDistance * 0.1f;
-        //            transform.position += transform.forward * moveDistance;
-        //            m_IsStopped = true;
-        //            return;
-        //        }
-
-        //        Vehicle hitVehicle = hit.collider.GetComponent<Vehicle>();
-        //        if (hitVehicle)
-        //        {
-        //            float hitDistance = Mathf.Clamp(hit.distance / Vector3.Distance(ray.origin, ray.origin))
-        //        }
-
-        //        return;
-        //    }
-
-        //    transform.position += transform.forward * Time.deltaTime * m_CurrentSpeed;
-        //}
+            UpdateCurrentSpeed();
+            float moveDelta = Time.deltaTime * m_CurrentSpeed;
 
 
+            // look for Vehicle
 
+            float vehicleFollowtraceLength = m_FollowDistance + moveDelta;
+            Ray ray = new Ray(GetForwardColliderPosition(), transform.forward);
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit, vehicleFollowtraceLength, m_LayerMaskVehicle))
+            {
+                float currentDistance = hit.distance;//  Vector3.Distance(GetForwardColliderPosition(), hit.point);
+                float seperation = m_FollowDistance - currentDistance;
+                Vector3 newPosition = transform.position + (-transform.forward * seperation);
+                transform.position = newPosition;
 
+                
+                ResetCurrentSpeed();
+                m_IsStopped = true;
 
-        //// Check for other vehicle in font of the vehicle
-        //Vector3 lineCastStart = transform.position;// + (transform.forward * (m_FollowDistance + m_Collider.size.z / 2f));
-        //Vector3 lineCastEnd = lineCastStart + desiredPosition + (transform.forward * (m_FollowDistance + m_Collider.size.z * 0.5f));
+                return;
+            }
 
-        //bool moveBlocked = false;
-        //RaycastHit hit;
+            if (Physics.Raycast(ray, out hit, moveDelta, m_LayerMaskIntersection))
+            {
+                IntersectionManager intersectionManager = hit.collider.GetComponent<IntersectionManager>();
+                if (intersectionManager != null)
+                {
+                    if (intersectionManager.CanEnterIntersection(this))
+                    {
+                        m_WaitingAtIntersection = null;
+                        intersectionManager.VehicleEnteredIntersection(this);
+                        transform.position += transform.forward * moveDelta;
+                        return;
+                    }
+                    else
+                    {
+                        float currentDistance = hit.distance;
+                        transform.position = transform.position + (-transform.forward * (m_LinecastHitAdjustOffset - currentDistance));//  moveDelta * hit.distance * moveDelta;
+                        m_WaitingAtIntersection = intersectionManager;
+                        m_IsStopped = true;
+                        ResetCurrentSpeed();
+                        return;
+                    }
+                }  
+            }
 
-        //if (Physics.Linecast(lineCastStart, lineCastEnd, out hit, m_LayerMaskVehicle))
-        //{
-        //    float hitDistance = hit.distance / Vector3.Distance(lineCastStart, lineCastEnd);
-        //    desiredPosition = desiredPosition * hitDistance - (transform.rotation * Vector3.forward * m_LinecastHitAdjustOffset);
-        //    moveBlocked = true;
-        //    transform.position += desiredPosition;
-        //    return moveBlocked;
-        //}
-
-
-        //// check for intersection
-        //lineCastStart = transform.position;// + (transform.forward * m_Collider.size.z / 2f);
-        //lineCastEnd = lineCastStart + desiredPosition + (transform.forward * m_Collider.size.z * 0.5f);
-
-        //if (Physics.Linecast(lineCastStart, lineCastEnd, out hit, m_LayerMaskIntersection))
-        //{
-        //    IntersectionManager intersectionManager = hit.collider.GetComponent<IntersectionManager>();
-        //    if (intersectionManager != null)
-        //    {
-        //        if (intersectionManager.m_TrafficFlowDirection != m_WorldTravelDirection)
-        //        {
-        //            float hitDistance = hit.distance / Vector3.Distance(lineCastStart, lineCastEnd);
-        //            desiredPosition = desiredPosition * hitDistance - (transform.rotation * Vector3.forward * m_LinecastHitAdjustOffset);
-        //            moveBlocked = true;
-        //            transform.position += desiredPosition;
-        //            return moveBlocked;
-        //        }
-        //        else
-        //        {
-        //            if (intersectionManager.VehicleEnteredIntersection(this))
-        //            { 
-        //                m_LocationWhenEnterendLastIntersection = transform.position;
-        //            }
-        //        }
-        //    }
-        //}
-
-        //transform.position += desiredPosition;
-        //return moveBlocked;
+            transform.position += transform.forward * moveDelta;
+        }   
     }
 
 
@@ -310,22 +291,33 @@ public class Vehicle : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.white;
-        Vector3 colliderCenter = transform.TransformPoint(m_Collider.center);
-        Vector3 colliderFront = colliderCenter + transform.forward * m_Collider.size.z * 0.5f;
-        Gizmos.DrawSphere(colliderFront, 0.25f);
+        //Gizmos.color = Color.white;
+        //Vector3 colliderCenter = transform.TransformPoint(m_Collider.center);
+        //Vector3 colliderFront = colliderCenter + transform.forward * m_Collider.size.z * 0.5f;
+        //Gizmos.DrawSphere(colliderFront, 0.25f);
 
-        Ray r = new Ray(colliderFront, transform.forward * 10f);
-        Gizmos.DrawRay(r);
+        //Ray r = new Ray(colliderFront, transform.forward * 10f);
+        //Gizmos.DrawRay(r);
 
         Gizmos.color = Color.green;
-        Vector3 stopStart = transform.position + transform.forward * m_Collider.size.z / 2f;
-        Gizmos.DrawSphere(stopStart, 0.25f);
+        Vector3 maxFollowPosition = GetForwardColliderPosition() + transform.forward * m_FollowDistance;
+        Gizmos.DrawSphere(maxFollowPosition, 0.25f);
 
-        Gizmos.DrawLine(stopStart, stopStart + (transform.rotation * Vector3.forward * m_FollowDistance));
 
-        Vector3 lineCastStart = transform.position + (transform.forward * (m_FollowDistance + m_Collider.size.z / 2f));// + (m_Collider.bounds.center * m_Collider.size.z / 2f);
         Gizmos.color = Color.yellow;
-        Gizmos.DrawSphere(lineCastStart, 0.25f);
+        Gizmos.DrawSphere(GetForwardColliderPosition(), 0.25f);
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawLine(GetForwardColliderPosition(), maxFollowPosition);
+
+        //Vector3 lineCastStart = transform.position + (transform.forward * (m_FollowDistance + m_Collider.size.z / 2f));// + (m_Collider.bounds.center * m_Collider.size.z / 2f);
+        //Gizmos.color = Color.yellow;
+        //Gizmos.DrawSphere(lineCastStart, 0.25f);
+
+        if (hitLocation != Vector3.zero)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere(hitLocation, 0.5f);
+        }
     }
 }
