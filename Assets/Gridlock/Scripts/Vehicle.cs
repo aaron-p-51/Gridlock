@@ -148,29 +148,29 @@ public class Vehicle : MonoBehaviour
     }
 
 
-    private bool WaitAtIntersection()
-    {
-        //if (m_WaitingAtIntersection == null)
-        //{
-        //   TryFindIntersection();
-        //}
+    //private bool WaitAtIntersection()
+    //{
+    //    //if (m_WaitingAtIntersection == null)
+    //    //{
+    //    //   TryFindIntersection();
+    //    //}
 
-        if (m_WaitingAtIntersection != null)
-        {
-            if (m_WaitingAtIntersection.m_TrafficFlowDirection != m_WorldTravelDirection) return true;
+    //    if (m_WaitingAtIntersection != null)
+    //    {
+    //        if (m_WaitingAtIntersection.m_TrafficFlowDirection != m_WorldTravelDirection) return true;
 
 
-            WorldTravelDirection otherTrafficDirection = m_WorldTravelDirection == WorldTravelDirection.X ? WorldTravelDirection.Z : WorldTravelDirection.X;
-            if (m_WaitingAtIntersection.m_TrafficFlowDirection == m_WorldTravelDirection &&
-                m_WaitingAtIntersection.NumVehiclsInIntersection(otherTrafficDirection) > 0)
-            {
-                return true;
-            }
+    //        WorldTravelDirection otherTrafficDirection = m_WorldTravelDirection == WorldTravelDirection.X ? WorldTravelDirection.Z : WorldTravelDirection.X;
+    //        if (m_WaitingAtIntersection.m_TrafficFlowDirection == m_WorldTravelDirection &&
+    //            m_WaitingAtIntersection.NumVehiclsInIntersection(otherTrafficDirection) > 0)
+    //        {
+    //            return true;
+    //        }
 
-        }
+    //    }
 
-        return false;
-    }
+    //    return false;
+    //}
 
     public bool m_LogMe = false;
     public void Log(int num)
@@ -181,31 +181,24 @@ public class Vehicle : MonoBehaviour
         }
     }
 
+    public bool WaitAtIntersection()
+    {
+        if (m_WaitingAtIntersection == null) return false;
+        return !m_WaitingAtIntersection.CanEnterIntersection(this);
+    }
+
     private void Move()
     {
         if (m_IsStopped)
         {
-            if (!IsBlockedByCar())
-            {
-                if (m_WaitingAtIntersection)
-                {
-                    if (m_WaitingAtIntersection.CanEnterIntersection(this))
-                    {
-                        m_IsStopped = false;
-                    }
-                }
-                else
-                {
-                    m_IsStopped = false;
-                }
-            }
+            m_IsStopped = IsBlockedByCar() || WaitAtIntersection();
         }
         else
         {
 
             UpdateCurrentSpeed();
             float moveDelta = Time.deltaTime * m_CurrentSpeed;
-
+            Vector3 positionOffset = transform.forward * moveDelta;
 
             // look for Vehicle
 
@@ -217,13 +210,15 @@ public class Vehicle : MonoBehaviour
                 float currentDistance = hit.distance;//  Vector3.Distance(GetForwardColliderPosition(), hit.point);
                 float seperation = m_FollowDistance - currentDistance;
                 Vector3 newPosition = transform.position + (-transform.forward * seperation);
-                transform.position = newPosition;
+                //transform.position = newPosition;
+
+                positionOffset = -transform.forward * seperation;
 
                 
                 ResetCurrentSpeed();
                 m_IsStopped = true;
 
-                return;
+                //return;
             }
 
             if (Physics.Raycast(ray, out hit, moveDelta, m_LayerMaskIntersection))
@@ -235,22 +230,26 @@ public class Vehicle : MonoBehaviour
                     {
                         m_WaitingAtIntersection = null;
                         intersectionManager.VehicleEnteredIntersection(this);
-                        transform.position += transform.forward * moveDelta;
-                        return;
+                        //positionOffset = transform.forward * moveDelta;
+                        //transform.position += transform.forward * moveDelta;
+                        //return;
                     }
                     else
                     {
                         float currentDistance = hit.distance;
-                        transform.position = transform.position + (-transform.forward * (m_LinecastHitAdjustOffset - currentDistance));//  moveDelta * hit.distance * moveDelta;
+                        //moveDelta = m_LinecastHitAdjustOffset
+                        positionOffset = -transform.forward * (m_LinecastHitAdjustOffset - currentDistance);
+                        //transform.position = transform.position + (-transform.forward * (m_LinecastHitAdjustOffset - currentDistance));//  moveDelta * hit.distance * moveDelta;
                         m_WaitingAtIntersection = intersectionManager;
                         m_IsStopped = true;
                         ResetCurrentSpeed();
-                        return;
+                        //return;
                     }
                 }  
             }
 
-            transform.position += transform.forward * moveDelta;
+            //transform.position += transform.forward * moveDelta;
+            transform.position += positionOffset;
         }   
     }
 
