@@ -89,7 +89,7 @@ public class IntersectionManager : MonoBehaviour
 
         foreach (Vehicle vehicle in m_VehiclesInIntersection)
         {
-            if (!vehicle.m_IsStopped)
+            if (!vehicle.IsStopped)
             {
                 return false;
             }
