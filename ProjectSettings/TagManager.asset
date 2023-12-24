@@ -12,12 +12,12 @@ TagManager:
   - Water
   - UI
   - 
+  - Vehicle
+  - Intersection
+  - Stoplight
+  - PlayerInteraction
   - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - VehicleTrigger
   - 
   - 
   - 
