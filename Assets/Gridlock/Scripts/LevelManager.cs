@@ -111,7 +111,7 @@ public class LevelManager : MonoBehaviour
     {
         foreach (Vehicle vehicle in m_SpawnedVehicles)
         {
-            if (!vehicle.m_IsStopped && !vehicle.m_Scored)
+            if (!vehicle.IsStopped && !vehicle.m_Scored)
             {
                 return false;
             }
