@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public static class EventManager
 {
@@ -16,4 +17,10 @@ public static class EventManager
 
     public static Action<float> OnScoreChange;
     public static void RaiseOnScoreChange(float score) => OnScoreChange?.Invoke(score);
+
+    public static Action OnGridlockDetected;
+    public static void RaiseOnGridlockDetected() => OnGridlockDetected?.Invoke();
+
+    public static Action<LevelManager.LevelState> OnLevelStateChanged;
+    public static void RaiseOnLevelStateChange(LevelManager.LevelState state) => OnLevelStateChanged?.Invoke(state);
 }

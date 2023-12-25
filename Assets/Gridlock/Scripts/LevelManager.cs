@@ -1,51 +1,74 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-[System.Serializable]
-public struct SpawnerControls
-{
-    public float levelTime;
-    public Vector2 spawnDelayTime;
-    public float spawnProgability;
-}
+
 
 public class LevelManager : MonoBehaviour
 {
-    [SerializeField] private float m_LevelTime;
-    [SerializeField] private VehicleSpawner[] m_VehicleSpawners;
-    [SerializeField] private List<SpawnerControls> m_SpawnerControls = new List<SpawnerControls>();
-    [SerializeField] private IntersectionManager[] m_IntersectionManagers;
-    [SerializeField] private AnimationCurve m_ScoreVsTimeWaitedAtIntersection;
-    [SerializeField] private float m_BaseVehicleScore;
+    [SerializeField] private LevelSettings m_LevelSettings;
+
+
+
+
+    //[SerializeField] private float m_LevelTime;
+    //[SerializeField] private VehicleSpawner[] m_VehicleSpawners;
+    //[SerializeField] private List<SpawnerControls> m_SpawnerControls = new List<SpawnerControls>();
+    //[SerializeField] private IntersectionManager[] m_IntersectionManagers;
+    //[SerializeField] private AnimationCurve m_ScoreVsTimeWaitedAtIntersection;
+    //[SerializeField] private float m_BaseVehicleScore;
+
+    private static List<IntersectionManager> m_Intersections = new List<IntersectionManager>();
+    private static List<Vehicle> m_SpawnedVehicles = new List<Vehicle>();
+    private static List<VehicleSpawner> m_VehicleSpawners = new List<VehicleSpawner>();
+
+
+    public enum LevelState { Intro, InGame, GameOver };
+
+    private int m_CurrentSpawnerControlIndex = 0;
 
     public float m_Score { get; private set; }
     //public static Action<float> OnScoreChange;
 
 
-    private List<Vehicle> m_SpawnedVehicles = new List<Vehicle>();
+    //private List<Vehicle> m_SpawnedVehicles = new List<Vehicle>();
 
 
     private float m_TimeElapsed;
 
     private void Awake()
     {
-        EventManager.OnVehicleSpawned += HandleOnVehicleSpawned;
-        EventManager.OnVehicleDestroyed += HandleOnVehicleDestroyed;
+        SetupLevel();
+
         EventManager.OnVehicleEnterScoreTrigger += HandleOnVehicleEnterScoreTrigger;
+
+    }
+
+
+    private void SetupLevel()
+    {
+        m_Intersections = FindObjectsOfType<IntersectionManager>().ToList();
+        m_VehicleSpawners = FindObjectsOfType<VehicleSpawner>().ToList();
+
+        foreach (VehicleSpawner vehicleSpawner in m_VehicleSpawners)
+        {
+            vehicleSpawner.SetDefaultVehiclePrefabs(m_LevelSettings.spawnableVehicles);
+            vehicleSpawner.SetSpawnerConfig(m_LevelSettings.vehicleSpawnerConfigs.First());
+        }
+
+        m_CurrentSpawnerControlIndex = 0;
     }
 
     private void OnDestroy()
     {
-        EventManager.OnVehicleSpawned -= HandleOnVehicleSpawned;
-        EventManager.OnVehicleDestroyed -= HandleOnVehicleDestroyed;
         EventManager.OnVehicleEnterScoreTrigger -= HandleOnVehicleEnterScoreTrigger;
     }
 
     private void Start()
     {
-        StartCoroutine(CheckForGridlock());
+        EventManager.RaiseOnLevelStateChange(LevelState.Intro);
     }
 
     // Start is called before the first frame update
@@ -54,69 +77,27 @@ public class LevelManager : MonoBehaviour
     void Update()
     {
         m_TimeElapsed += Time.deltaTime;
-        if (m_SpawnerControls.Count > 0 && m_TimeElapsed > m_SpawnerControls[0].levelTime)
+        if (m_LevelSettings.vehicleSpawnerConfigs.Length > 0 && 
+            m_TimeElapsed > m_LevelSettings.vehicleSpawnerConfigs[m_CurrentSpawnerControlIndex].levelTime)
         {
             foreach(VehicleSpawner spawner in m_VehicleSpawners)
             {
-                spawner.SetNewSpawnerRates(m_SpawnerControls[0].spawnDelayTime, m_SpawnerControls[0].spawnProgability);
+                spawner.SetSpawnerConfig(m_LevelSettings.vehicleSpawnerConfigs[m_CurrentSpawnerControlIndex]);
             }
 
-            m_SpawnerControls.RemoveAt(0);
+            m_CurrentSpawnerControlIndex++;
         }
     }
 
-    private void HandleOnVehicleSpawned(Vehicle vehicle)
-    {
-        m_SpawnedVehicles.Add(vehicle);
-    }
-
-    private void HandleOnVehicleDestroyed(Vehicle vehicle)
-    {
-        m_SpawnedVehicles.Remove(vehicle);
-    }
+    
 
     private void HandleOnVehicleEnterScoreTrigger(Vehicle vehicle)
     {
-        m_Score += m_ScoreVsTimeWaitedAtIntersection.Evaluate(vehicle.m_TimeWaitingAtIntersection) + m_BaseVehicleScore;
-        EventManager.RaiseOnScoreChange(m_Score);
+        //m_Score += m_ScoreVsTimeWaitedAtIntersection.Evaluate(vehicle.m_TimeWaitingAtIntersection) + m_BaseVehicleScore;
+        //EventManager.RaiseOnScoreChange(m_Score);
     }
 
-    private IEnumerator CheckForGridlock()
-    {
-        while (true)
-        {
-            if (AllIntersectionsGridlocked() && AllUnscoredVehiclesStopped())
-            {
-                Debug.LogError("Grid Lock!!!");
-            }
+    
 
-            yield return new WaitForSeconds(1.5f);
-        }
-    }
-
-    public bool AllIntersectionsGridlocked()
-    {
-        foreach (IntersectionManager intersectionManager in m_IntersectionManagers)
-        {
-            if (!intersectionManager.IsGridlocked())
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    public bool AllUnscoredVehiclesStopped()
-    {
-        foreach (Vehicle vehicle in m_SpawnedVehicles)
-        {
-            if (!vehicle.IsStopped && !vehicle.m_Scored)
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
+    
 }

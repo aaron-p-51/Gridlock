@@ -1,23 +1,26 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static PlayerUIController;
 
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private Camera m_Camera;
     [SerializeField] private PlayerUIController m_PlayerUIController;
 
-    // Start is called before the first frame update
+    public bool m_PlayerReady;
 
     private void Awake()
     {
-        //LevelManager.OnScoreChange += HandleOnScoreChange;
+        m_PlayerUIController.OnButtonClicked += HandleOnUIButtonClicked;
     }
 
-    private void OnDestroy()
+
+    private void HandleOnUIButtonClicked(PlayerUIButtons button)
     {
-        //LevelManager.OnScoreChange -= HandleOnScoreChange;
+
     }
+
 
     // Update is called once per frame
     private void Update()
@@ -37,11 +40,4 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
-
-    //private void HandleOnScoreChange(float score)
-    //{
-    //    m_PlayerUIController.UdpateInGameScoreText(Mathf.RoundToInt(score));
-    //}
-
-
 }

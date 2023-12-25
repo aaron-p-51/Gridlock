@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using System;
 
 
 
@@ -35,18 +36,33 @@ public class PlayerUIController : MonoBehaviour
         ConfirmMainMenuPage
     };
 
+    public enum PlayerUIButtons
+    {
+        Play,
+        GameOverPlayAgain,
+        GameOverMainMenu,
+        MainMenuBackButton,
+        GameOverMainMenuMainMenu,
+    }
+
     private Dictionary<PlayerUIPage, GameObject> m_UIPages = new Dictionary<PlayerUIPage, GameObject>();
+
+    public Action<PlayerUIButtons> OnButtonClicked;
 
 
     private void Awake()
     {
         BuildUIPagesDictionary();
         AddButtonClickListeners();
+
+        EventManager.OnLevelStateChanged += HandleOnLevelStateChange;
     }
 
     private void OnDestroy()
     {
         RemoveButtonClickListeners();
+
+        EventManager.OnLevelStateChanged -= HandleOnLevelStateChange;
     }
 
     private void BuildUIPagesDictionary()
@@ -90,7 +106,7 @@ public class PlayerUIController : MonoBehaviour
 
     private void HandeOnPlayButtonClicked()
     {
-
+        OnButtonClicked?.Invoke(PlayerUIButtons.Play);
     }
 
     private void HandleOnGameOverPlayAgainButtonClicked()
@@ -111,6 +127,24 @@ public class PlayerUIController : MonoBehaviour
     private void HandleConfirmMainMenuMainMenuButtonClicked()
     {
 
+    }
+
+    private void HandleOnLevelStateChange(LevelManager.LevelState newState)
+    {
+        switch (newState)
+        {
+            case LevelManager.LevelState.Intro:
+                SetUIPageActive(PlayerUIPage.IntroPage);
+                break;
+            case LevelManager.LevelState.InGame:
+                SetUIPageActive(PlayerUIPage.InGamePage);
+                break;
+            case LevelManager.LevelState.GameOver:
+                SetUIPageActive(PlayerUIPage.GameOverPage);
+                break;
+            default:
+                break;
+        }
     }
 
 

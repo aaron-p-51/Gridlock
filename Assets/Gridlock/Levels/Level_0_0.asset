@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6049a11ea1ed9f54ab6bd068b7535d94, type: 3}
+  m_Name: Level_0_0
+  m_EditorClassIdentifier: 
+  levelNumber:
+    main: 1
+    sub: 1
+  LevelName: Dev Level
+  m_TimeLimit: 260
+  m_PassingScore: 100
+  m_BaseVehicleScore: 10
+  m_ScoreVsTimeWaitedAtIntersection:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0.18898809
+      value: 0.5559211
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 136
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.46130952
+      value: 0.4276316
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 136
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spawnableVehicles:
+  - {fileID: 3439433724190411795, guid: 93250ec573e75654385624771bf4675f, type: 3}
+  - {fileID: 248685437273248586, guid: e022e2feeb505cd44a46ddd9fec0219c, type: 3}
+  vehicleSpawnerConfigs:
+  - levelTime: 0
+    spawnIntervalRange: {x: 0, y: 0}
+    spawnProgability: 0
+    vehiclePrefabsOverrides: []
+  - levelTime: 0
+    spawnIntervalRange: {x: 0, y: 0}
+    spawnProgability: 0
+    vehiclePrefabsOverrides: []
+  - levelTime: 0
+    spawnIntervalRange: {x: 0, y: 0}
+    spawnProgability: 0
+    vehiclePrefabsOverrides: []
+  - levelTime: 0
+    spawnIntervalRange: {x: 0, y: 0}
+    spawnProgability: 0
+    vehiclePrefabsOverrides: []
+  - levelTime: 0
+    spawnIntervalRange: {x: 0, y: 0}
+    spawnProgability: 0
+    vehiclePrefabsOverrides: []
+  - levelTime: 0
+    spawnIntervalRange: {x: 0, y: 0}
+    spawnProgability: 0
+    vehiclePrefabsOverrides: []
+  - levelTime: 0
+    spawnIntervalRange: {x: 0, y: 0}
+    spawnProgability: 0
+    vehiclePrefabsOverrides: []
