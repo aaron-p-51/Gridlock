@@ -31,7 +31,6 @@ public class IntersectionManager : MonoBehaviour
         }
 
         m_TrafficFlowDirection = m_StartingTrafficDirection;
-        //UpdateTrafficLights();
     }
 
     // Start is called before the first frame update
@@ -78,6 +77,7 @@ public class IntersectionManager : MonoBehaviour
         if (m_VehiclesInIntersection.Contains(vehicle)) return true;
         
         if (m_TrafficFlowDirection == WorldTravelDirection.Unset || m_TrafficFlowDirection != vehicle.m_WorldTravelDirection) return false;
+
         // get the other vehicle travel direction
         WorldTravelDirection otherVehicleTravelDirection = GetOtherWorldTravelDirection(vehicle.m_WorldTravelDirection);
         return NumVehiclsInIntersection(otherVehicleTravelDirection) <= 0 && m_TrafficFlowDirection == vehicle.m_WorldTravelDirection;
@@ -104,8 +104,6 @@ public class IntersectionManager : MonoBehaviour
     }
     public void TrySwitchTrafficFlow()
     {
-        //if (m_VehiclesInIntersection.Count == 0)
-        //{
         if (Time.time > (m_LastLightChangeTime + m_MinTimeBetweenLightChanges))
         {
             m_TrafficFlowDirection = m_TrafficFlowDirection == WorldTravelDirection.X ? WorldTravelDirection.Z : WorldTravelDirection.X;
@@ -113,7 +111,6 @@ public class IntersectionManager : MonoBehaviour
 
             m_LastLightChangeTime = Time.time;
         }
-        //}
     }
 
     // Update is called once per frame
@@ -131,7 +128,6 @@ public class IntersectionManager : MonoBehaviour
     {
         return m_VehiclesInIntersection.Contains(vehicle);
     }
-
 
     private void OnTriggerExit(Collider other)
     {

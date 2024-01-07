@@ -2,8 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
-//public enum WorldSpawnDirection { X, Z, Either };
+
 
 public class VehicleSpawner : MonoBehaviour
 {
@@ -15,12 +16,18 @@ public class VehicleSpawner : MonoBehaviour
     [SerializeField] private LayerMask m_LayerMask;
     [SerializeField][Range(0f, 1f)] private float m_SpawnChance;
 
-    //public WorldSpawnDirection m_WorldSpawnDirection;
+    private GameObject[] m_DefaultVehiclePrefabs;
 
-    RaycastHit m_Hit;
-    bool m_HitDetected;
+    [System.Serializable]
+    public struct Config
+    {
+        public float levelTime;
+        public Vector2 spawnIntervalRange;
+        public float spawnProbability;
+        public GameObject[] vehiclePrefabsOverrides;
+    }
 
-    public static Action<Vehicle> OnVehicleSpawned;
+    private Config m_Config;
 
     private void OnValidate()
     {
@@ -37,29 +44,48 @@ public class VehicleSpawner : MonoBehaviour
     {
         while (true)
         {
-            yield return new WaitForSeconds(UnityEngine.Random.Range(m_SpawnRange.x, m_SpawnRange.y));
+            yield return new WaitForSeconds(GetSpawnDelay());
 
-            if (UnityEngine.Random.Range(0f, 1f) < m_SpawnChance)
+            if (CanSpawn())
             {
-                RaycastHit hit;
-                Collider[] hitColliders = Physics.OverlapBox(transform.TransformPoint(m_SpawnCollider.center), m_SpawnCollider.size * 0.5f, Quaternion.identity, m_LayerMask);
-                if (hitColliders.Length == 0)
-                {
-                    int prefabIndex = UnityEngine.Random.Range(0, m_VehiclePrefabs.Length);
-                    Instantiate(m_VehiclePrefabs[prefabIndex], m_SpawnPoint.position, transform.rotation, transform);
-                }
-                else
-                {
-                    Debug.LogError($"Fail To Spawn: hit {hitColliders[0].name}");
-                }
+                SpawnVehicle();
             }
         }
     }
 
-    public void SetNewSpawnerRates(Vector2 newSpawnRange, float newSpawnChance)
+    public bool CanSpawn()
     {
-        m_SpawnRange = newSpawnRange;
-        m_SpawnChance = newSpawnChance;
+        return UnityEngine.Random.Range(0f, 1f) <= m_Config.spawnProbability &&
+            Physics.OverlapBox(transform.TransformPoint(m_SpawnCollider.center), m_SpawnCollider.size * 0.5f, Quaternion.identity, m_LayerMask).Length == 0;
+    }
+
+    public float GetSpawnDelay()
+    {
+        return UnityEngine.Random.Range(m_Config.spawnIntervalRange.x, m_Config.spawnIntervalRange.y);
+    }
+
+    public void SpawnVehicle()
+    {
+        int prefabIndex = UnityEngine.Random.Range(0, m_VehiclePrefabs.Length);
+        Instantiate(m_VehiclePrefabs[prefabIndex], m_SpawnPoint.position, transform.rotation, transform);
+    }
+
+    public void SetDefaultVehiclePrefabs(GameObject[] vehiclePrefabs)
+    {
+        m_DefaultVehiclePrefabs = vehiclePrefabs;
+    }
+
+    public void SetSpawnerConfig(VehicleSpawner.Config spawnerConfig)
+    {
+        m_Config = spawnerConfig;
+        if (m_Config.vehiclePrefabsOverrides.Length > 0)
+        {
+            m_VehiclePrefabs = m_Config.vehiclePrefabsOverrides;
+        }
+        else
+        {
+            m_VehiclePrefabs = m_DefaultVehiclePrefabs;
+        }
     }
 
     private void OnDrawGizmos()
