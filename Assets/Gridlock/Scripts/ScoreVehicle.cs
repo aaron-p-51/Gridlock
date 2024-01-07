@@ -7,8 +7,6 @@ public class ScoreVehicle : MonoBehaviour
 {
     [SerializeField] private BoxCollider m_ScoreVolume;
 
-    //public static Action<Vehicle> OnVehicleEnterScoreVolue;
-
     private void OnValidate()
     {
         m_ScoreVolume = GetComponent<BoxCollider>();    
@@ -19,7 +17,6 @@ public class ScoreVehicle : MonoBehaviour
         Vehicle vehicle = other.GetComponent<Vehicle>();
         if (vehicle && !vehicle.m_Scored)
         {
-            //OnVehicleEnterScoreVolue?.Invoke(vehicle);
             EventManager.RaiseOnVehicleEnterScoreTrigger(vehicle);
             vehicle.m_Scored = true;
         }

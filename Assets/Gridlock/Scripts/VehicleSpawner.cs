@@ -23,7 +23,7 @@ public class VehicleSpawner : MonoBehaviour
     {
         public float levelTime;
         public Vector2 spawnIntervalRange;
-        public float spawnProgability;
+        public float spawnProbability;
         public GameObject[] vehiclePrefabsOverrides;
     }
 
@@ -55,7 +55,7 @@ public class VehicleSpawner : MonoBehaviour
 
     public bool CanSpawn()
     {
-        return UnityEngine.Random.Range(0f, 1f) < m_Config.spawnProgability &&
+        return UnityEngine.Random.Range(0f, 1f) <= m_Config.spawnProbability &&
             Physics.OverlapBox(transform.TransformPoint(m_SpawnCollider.center), m_SpawnCollider.size * 0.5f, Quaternion.identity, m_LayerMask).Length == 0;
     }
 

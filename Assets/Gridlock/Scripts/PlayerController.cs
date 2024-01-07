@@ -1,26 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static PlayerUIController;
+
 
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private Camera m_Camera;
-    [SerializeField] private PlayerUIController m_PlayerUIController;
-
-    public bool m_PlayerReady;
-
-    private void Awake()
-    {
-        m_PlayerUIController.OnButtonClicked += HandleOnUIButtonClicked;
-    }
-
-
-    private void HandleOnUIButtonClicked(PlayerUIButtons button)
-    {
-
-    }
-
 
     // Update is called once per frame
     private void Update()

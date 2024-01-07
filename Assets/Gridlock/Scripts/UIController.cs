@@ -7,7 +7,7 @@ using System;
 
 
 
-public class PlayerUIController : MonoBehaviour
+public class UIController : MonoBehaviour
 {
     [Header("Pages")]
     [SerializeField] private GameObject m_IntroPage;
@@ -27,8 +27,7 @@ public class PlayerUIController : MonoBehaviour
     [SerializeField] private Button m_ConfirmMainMenuBackButton;
     [SerializeField] private Button m_ConfirmMainMenuMainMenuButton;
 
-
-    public enum PlayerUIPage
+    public enum UIPage
     {
         IntroPage,
         InGamePage, 
@@ -36,7 +35,7 @@ public class PlayerUIController : MonoBehaviour
         ConfirmMainMenuPage
     };
 
-    public enum PlayerUIButtons
+    public enum UIButton
     {
         Play,
         GameOverPlayAgain,
@@ -45,32 +44,27 @@ public class PlayerUIController : MonoBehaviour
         GameOverMainMenuMainMenu,
     }
 
-    private Dictionary<PlayerUIPage, GameObject> m_UIPages = new Dictionary<PlayerUIPage, GameObject>();
+    private Dictionary<UIPage, GameObject> m_UIPages = new Dictionary<UIPage, GameObject>();
 
-    public Action<PlayerUIButtons> OnButtonClicked;
-
+    public Action<UIButton> OnButtonClicked;
 
     private void Awake()
     {
         BuildUIPagesDictionary();
         AddButtonClickListeners();
-
-        EventManager.OnLevelStateChanged += HandleOnLevelStateChange;
     }
 
     private void OnDestroy()
     {
         RemoveButtonClickListeners();
-
-        EventManager.OnLevelStateChanged -= HandleOnLevelStateChange;
     }
 
     private void BuildUIPagesDictionary()
     {
-        m_UIPages.Add(PlayerUIPage.IntroPage, m_IntroPage);
-        m_UIPages.Add(PlayerUIPage.InGamePage, m_InGamePage);
-        m_UIPages.Add(PlayerUIPage.GameOverPage, m_GameOverPage);
-        m_UIPages.Add(PlayerUIPage.ConfirmMainMenuPage, m_ConfirmMainMenuPage);
+        m_UIPages.Add(UIPage.IntroPage, m_IntroPage);
+        m_UIPages.Add(UIPage.InGamePage, m_InGamePage);
+        m_UIPages.Add(UIPage.GameOverPage, m_GameOverPage);
+        m_UIPages.Add(UIPage.ConfirmMainMenuPage, m_ConfirmMainMenuPage);
     }
 
     private void AddButtonClickListeners()
@@ -96,56 +90,30 @@ public class PlayerUIController : MonoBehaviour
         m_InGameScoreText.text = score.ToString();   
     }
 
-    public void SetUIPageActive(PlayerUIPage page)
+    public void SetUIPageActive(UIPage page)
     {
-        foreach (KeyValuePair<PlayerUIPage, GameObject> kvp in m_UIPages)
+        foreach (KeyValuePair<UIPage, GameObject> kvp in m_UIPages)
         {
             kvp.Value.SetActive(page == kvp.Key);
         }
     }
 
-    private void HandeOnPlayButtonClicked()
-    {
-        OnButtonClicked?.Invoke(PlayerUIButtons.Play);
-    }
+    private void HandeOnPlayButtonClicked() => OnButtonClicked?.Invoke(UIButton.Play);
 
-    private void HandleOnGameOverPlayAgainButtonClicked()
-    {
-
-    }
+    private void HandleOnGameOverPlayAgainButtonClicked() => OnButtonClicked?.Invoke(UIButton.GameOverPlayAgain);
 
     private void HandleOnGameOverMainMenuButtonClicked()
     {
-        SetUIPageActive(PlayerUIPage.ConfirmMainMenuPage);
+        SetUIPageActive(UIPage.ConfirmMainMenuPage);
     }
 
     private void HandleOnConfirmMainMenuBackButtonClicked()
     {
-        SetUIPageActive(PlayerUIPage.GameOverPage);
+        SetUIPageActive(UIPage.GameOverPage);
     }
 
     private void HandleConfirmMainMenuMainMenuButtonClicked()
     {
 
     }
-
-    private void HandleOnLevelStateChange(LevelManager.LevelState newState)
-    {
-        switch (newState)
-        {
-            case LevelManager.LevelState.Intro:
-                SetUIPageActive(PlayerUIPage.IntroPage);
-                break;
-            case LevelManager.LevelState.InGame:
-                SetUIPageActive(PlayerUIPage.InGamePage);
-                break;
-            case LevelManager.LevelState.GameOver:
-                SetUIPageActive(PlayerUIPage.GameOverPage);
-                break;
-            default:
-                break;
-        }
-    }
-
-
 }
